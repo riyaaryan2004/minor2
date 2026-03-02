@@ -1,22 +1,26 @@
-from flask import Flask, redirect, request
+from flask import Flask,redirect,request
 import requests
 import base64
 import csv
 import os
 from datetime import datetime
+from collections import defaultdict
+import numpy as np
 
+# app is the complete web server
+# isi app par routes banenge
 app = Flask(__name__)
 
 CLIENT_ID = "23TXMK"
 CLIENT_SECRET = "b19bed40782c38915f7a78687262612b"
 REDIRECT_URI = "http://localhost:5000/callback"
 
-
+# test endpoint to verify the server is running
 @app.route("/")
 def home():
-    return "Server Running"
+    return "Fitbit Mood Data Collector Running"
 
-
+# Login route
 @app.route("/login")
 def login():
     auth_url = (
@@ -27,7 +31,7 @@ def login():
     )
     return redirect(auth_url)
 
-
+# Callback route
 @app.route("/callback")
 def callback():
     code = request.args.get("code")
@@ -55,126 +59,218 @@ def callback():
     response = requests.post(token_url, headers=headers, data=data)
 
     if response.status_code != 200:
-        return {
-            "error": "Token exchange failed",
-            "fitbit_response": response.json()
-        }, 400
+        return {"error": "Token exchange failed"}, 400
 
-    token_data = response.json()
-    access_token = token_data["access_token"]
+    access_token = response.json()["access_token"]
 
-    return redirect(f"/heartrate?token={access_token}")
+    return redirect(f"/collect?token={access_token}")
 
-
-@app.route("/heartrate")
-def heartrate():
+# Data Collection Route
+@app.route("/collect")
+def collect():
     access_token = request.args.get("token")
 
     if not access_token:
         return {"error": "Missing access token"}, 400
 
-    headers = {
-        "Authorization": f"Bearer {access_token}"
-    }
-
-    # ---------------- HEART DATA ----------------
-    heart_url = "https://api.fitbit.com/1/user/-/activities/heart/date/today/1d.json"
-    heart_response = requests.get(heart_url, headers=headers)
-    heart_data = heart_response.json()
-
-    # ---------------- STEPS DATA ----------------
-    steps_url = "https://api.fitbit.com/1/user/-/activities/steps/date/today/1d.json"
-    steps_response = requests.get(steps_url, headers=headers)
-    steps_data = steps_response.json()
-
-    # Extract heart zones
-    zones = heart_data["activities-heart"][0]["value"]["heartRateZones"]
-    resting_hr = heart_data["activities-heart"][0]["value"].get("restingHeartRate", 70)
-
-    out_range = zones[0]["minutes"]
-    fat_burn = zones[1]["minutes"]
-    cardio = zones[2]["minutes"]
-    peak = zones[3]["minutes"]
-
-    # Extract steps
-    steps = int(steps_data["activities-steps"][0]["value"])
-
-    # ---------------- FEATURE ENGINEERING ----------------
-
-    total_minutes = out_range + fat_burn + cardio + peak
-
-    intensity_ratio = (
-        (fat_burn + cardio + peak) / total_minutes
-        if total_minutes else 0
-    )
-
-    # Custom energy-style score (0–100 approx)
-    activity_score = (
-        (fat_burn * 1.5) +
-        (cardio * 2) +
-        (peak * 3) +
-        (steps / 1000)
-    )
-
-    activity_score = min(activity_score, 100)
-
-    step_intensity = steps / 10000  # normalized
+    headers = {"Authorization": f"Bearer {access_token}"}
 
     now = datetime.now()
-    hour = now.hour
+    today = now.strftime("%Y-%m-%d")
     day_of_week = now.weekday()
 
-    # ---------------- SAVE STRUCTURED CSV ----------------
+    # ---------------- INTRADAY HEART RATE ----------------
+    heart_intraday_url = f"https://api.fitbit.com/1/user/-/activities/heart/date/{today}/1d/1min.json"
+    heart_intraday_data = requests.get(heart_intraday_url, headers=headers).json()
+
+    # ---------------- INTRADAY STEPS ----------------
+    steps_intraday_url = f"https://api.fitbit.com/1/user/-/activities/steps/date/{today}/1d/1min.json"
+    steps_intraday_data = requests.get(steps_intraday_url, headers=headers).json()
+
+    # ---------------- DAILY HEART SUMMARY ----------------
+    heart_daily_url = f"https://api.fitbit.com/1/user/-/activities/heart/date/{today}/1d.json"
+    heart_daily_data = requests.get(heart_daily_url, headers=headers).json()
+
+    # ---------------- SLEEP DATA ----------------
+    sleep_url = f"https://api.fitbit.com/1.2/user/-/sleep/date/{today}.json"
+    sleep_data = requests.get(sleep_url, headers=headers).json()
+
+    # ===================== HOURLY PROCESSING =====================
+
+    heart_intraday = heart_intraday_data["activities-heart-intraday"]["dataset"]
+    steps_intraday = steps_intraday_data["activities-steps-intraday"]["dataset"]
+
+    hourly_hr = defaultdict(list)
+    hourly_steps = defaultdict(int)
+
+    for entry in heart_intraday:
+        hour = int(entry["time"].split(":")[0])
+        hourly_hr[hour].append(entry["value"])
+
+    for entry in steps_intraday:
+        hour = int(entry["time"].split(":")[0])
+        hourly_steps[hour] += entry["value"]
+
+    resting_hr = heart_daily_data["activities-heart"][0]["value"].get("restingHeartRate", 0)
 
     os.makedirs("data", exist_ok=True)
-    csv_file_path = "data/structured_fitbit_data.csv"
-    file_exists = os.path.isfile(csv_file_path)
+    hourly_file = "data/hourly_data.csv"
 
-    with open(csv_file_path, "a", newline="", encoding="utf-8") as file:
+    existing_rows = []
+    if os.path.exists(hourly_file):
+        with open(hourly_file, "r", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            header = next(reader)
+            for row in reader:
+                if row[0] != today:
+                    existing_rows.append(row)
+
+    with open(hourly_file, "w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
 
-        if not file_exists:
-            writer.writerow([
-                "timestamp",
-                "hour",
-                "day_of_week",
-                "out_of_range",
-                "fat_burn",
-                "cardio",
-                "peak",
-                "resting_hr",
-                "steps",
-                "intensity_ratio",
-                "activity_score",
-                "step_intensity"
-            ])
-
         writer.writerow([
-            now,
-            hour,
-            day_of_week,
-            out_range,
-            fat_burn,
-            cardio,
-            peak,
-            resting_hr,
-            steps,
-            intensity_ratio,
-            activity_score,
-            step_intensity
+            "date","hour","day_of_week",
+            "avg_hr","max_hr","min_hr",
+            "hr_std","steps","hr_relative"
         ])
 
-    # ---------------- RETURN CLEAN FEATURE OUTPUT ----------------
+        for row in existing_rows:
+            writer.writerow(row)
 
-    return {
-        "hour": hour,
-        "day_of_week": day_of_week,
-        "resting_hr": resting_hr,
-        "steps": steps,
-        "intensity_ratio": intensity_ratio,
-        "activity_score": activity_score,
-        "step_intensity": step_intensity
-    }
+        for hour in sorted(hourly_hr.keys()):
+            hr_values = hourly_hr[hour]
+
+            avg_hr = np.mean(hr_values)
+            max_hr = np.max(hr_values)
+            min_hr = np.min(hr_values)
+            hr_std = np.std(hr_values)
+            steps = hourly_steps[hour]
+            hr_relative = avg_hr - resting_hr
+
+            writer.writerow([
+                today,
+                hour,
+                day_of_week,
+                round(avg_hr,2),
+                int(max_hr),
+                int(min_hr),
+                round(hr_std,2),
+                steps,
+                round(hr_relative,2)
+            ])
+
+    # ===================== DAILY SUMMARY PROCESSING =====================
+
+    total_steps = sum(hourly_steps.values())
+
+    total_sleep = 0
+    deep_minutes = 0
+    rem_minutes = 0
+    sleep_start_time = ""
+    wake_time = ""
+
+    if "sleep" in sleep_data and len(sleep_data["sleep"]) > 0:
+        sleep_entry = sleep_data["sleep"][0]
+        total_sleep = sleep_entry.get("minutesAsleep", 0)
+        sleep_start_time = sleep_entry.get("startTime","")
+        wake_time = sleep_entry.get("endTime","")
+
+        if "levels" in sleep_entry:
+            levels = sleep_entry["levels"]["summary"]
+            deep_minutes = levels.get("deep", {}).get("minutes", 0)
+            rem_minutes = levels.get("rem", {}).get("minutes", 0)
+
+    deep_ratio = deep_minutes / total_sleep if total_sleep else 0
+    rem_ratio = rem_minutes / total_sleep if total_sleep else 0
+    sleep_deficit = 480 - total_sleep
+
+    all_hr_values = [val for sublist in hourly_hr.values() for val in sublist]
+    avg_hr_day = np.mean(all_hr_values) if all_hr_values else 0
+    hr_std_day = np.std(all_hr_values) if all_hr_values else 0
+
+    activity_load = total_steps / 10000
+
+    daily_file = "data/daily_data.csv"
+
+    existing_daily = []
+    if os.path.exists(daily_file):
+        with open(daily_file, "r", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            header = next(reader)
+            for row in reader:
+                if row[0] != today:
+                    existing_daily.append(row)
+
+    with open(daily_file, "w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+
+        writer.writerow([
+            "date","day_of_week","resting_hr","total_steps",
+            "total_sleep","deep_ratio","rem_ratio","sleep_deficit",
+            "sleep_start_time","wake_time",
+            "avg_hr_day","hr_std_day","activity_load",
+            "mood_score","productivity_score"
+        ])
+
+        for row in existing_daily:
+            writer.writerow(row)
+
+        writer.writerow([
+            today,
+            day_of_week,
+            resting_hr,
+            total_steps,
+            total_sleep,
+            round(deep_ratio,3),
+            round(rem_ratio,3),
+            sleep_deficit,
+            sleep_start_time,
+            wake_time,
+            round(avg_hr_day,2),
+            round(hr_std_day,2),
+            round(activity_load,2),
+            "",   # mood_score placeholder
+            ""    # productivity_score placeholder
+        ])
+
+    return {"status": "Hourly and Daily data collected successfully"}
+
+
+# ===================== RATING ROUTE =====================
+
+@app.route("/rate")
+def rate():
+    mood = request.args.get("mood")
+    productivity = request.args.get("productivity")
+
+    if not mood or not productivity:
+        return {"error": "Provide mood and productivity"}, 400
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    daily_file = "data/daily_data.csv"
+
+    if not os.path.exists(daily_file):
+        return {"error": "Collect data first"}, 400
+
+    updated_rows = []
+
+    with open(daily_file, "r", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        header = next(reader)
+
+        for row in reader:
+            if row[0] == today:
+                row[-2] = mood
+                row[-1] = productivity
+            updated_rows.append(row)
+
+    with open(daily_file, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+        writer.writerows(updated_rows)
+
+    return {"status": "Mood and productivity recorded successfully"}
+
 
 if __name__ == "__main__":
     app.run(debug=True)

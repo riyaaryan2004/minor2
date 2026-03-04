@@ -58,3 +58,7 @@ Check:
 - mood_score column is filled
 - productivity_score column is filled
 - No duplicate date exists
+
+To fix some day's data
+python repair_day.py 2026-03-04 ACCESS_TOKEN
+after running python app.py and localhost on browser

@@ -137,26 +137,33 @@ def collect():
         for row in existing_rows:
             writer.writerow(row)
 
-        for hour in sorted(hourly_hr.keys()):
-            hr_values = hourly_hr[hour]
+        for hour in range(24):
+            hr_values = hourly_hr.get(hour, [])
+            steps = hourly_steps.get(hour, 0)
 
-            avg_hr = np.mean(hr_values)
-            max_hr = np.max(hr_values)
-            min_hr = np.min(hr_values)
-            hr_std = np.std(hr_values)
-            steps = hourly_steps[hour]
-            hr_relative = avg_hr - resting_hr
+            if hr_values:
+                avg_hr = np.mean(hr_values)
+                max_hr = np.max(hr_values)
+                min_hr = np.min(hr_values)
+                hr_std = np.std(hr_values)
+            else:
+                avg_hr = np.nan
+                max_hr = np.nan
+                min_hr = np.nan
+                hr_std = np.nan
+
+            hr_relative = avg_hr - resting_hr if not np.isnan(avg_hr) else np.nan
 
             writer.writerow([
                 today,
                 hour,
                 day_of_week,
-                round(avg_hr,2),
-                int(max_hr),
-                int(min_hr),
-                round(hr_std,2),
+                round(avg_hr,2) if not np.isnan(avg_hr) else "",
+                int(max_hr) if not np.isnan(max_hr) else "",
+                int(min_hr) if not np.isnan(min_hr) else "",
+                round(hr_std,2) if not np.isnan(hr_std) else "",
                 steps,
-                round(hr_relative,2)
+                round(hr_relative,2) if not np.isnan(hr_relative) else ""
             ])
 
     # ===================== DAILY SUMMARY PROCESSING =====================

@@ -23,8 +23,8 @@ steps_intraday_data = requests.get(steps_intraday_url, headers=headers).json()
 heart_daily_data = requests.get(heart_daily_url, headers=headers).json()
 sleep_data = requests.get(sleep_url, headers=headers).json()
 
-heart_intraday = heart_intraday_data["activities-heart-intraday"]["dataset"]
-steps_intraday = steps_intraday_data["activities-steps-intraday"]["dataset"]
+heart_intraday = heart_intraday_data.get("activities-heart-intraday", {}).get("dataset", [])
+steps_intraday = steps_intraday_data.get("activities-steps-intraday", {}).get("dataset", [])
 
 hourly_hr = defaultdict(list)
 hourly_steps = defaultdict(int)
@@ -37,7 +37,7 @@ for entry in steps_intraday:
     hour = int(entry["time"].split(":")[0])
     hourly_steps[hour] += entry["value"]
 
-resting_hr = heart_daily_data["activities-heart"][0]["value"].get("restingHeartRate", 0)
+resting_hr = heart_daily_data.get("activities-heart",[{}])[0].get("value",{}).get("restingHeartRate",0)
 
 day_of_week = datetime.strptime(date, "%Y-%m-%d").weekday()
 
@@ -51,7 +51,7 @@ rows = []
 if os.path.exists(hourly_file):
     with open(hourly_file, "r") as f:
         reader = csv.reader(f)
-        header = next(reader)
+        next(reader, None)
         for row in reader:
             if row[0] != date:
                 rows.append(row)
@@ -74,31 +74,31 @@ with open(hourly_file, "w", newline="") as f:
         steps = hourly_steps.get(hour, 0)
 
         if hr_values:
-            avg_hr = np.mean(hr_values)
-            max_hr = np.max(hr_values)
-            min_hr = np.min(hr_values)
-            hr_std = np.std(hr_values)
+            avg_hr = float(np.mean(hr_values))
+            max_hr = int(np.max(hr_values))
+            min_hr = int(np.min(hr_values))
+            hr_std = float(np.std(hr_values))
         else:
-            avg_hr = np.nan
-            max_hr = np.nan
-            min_hr = np.nan
-            hr_std = np.nan
+            avg_hr = ""
+            max_hr = ""
+            min_hr = ""
+            hr_std = ""
 
-        hr_relative = avg_hr - resting_hr if not np.isnan(avg_hr) else np.nan
+        hr_relative = round(avg_hr - resting_hr,2) if avg_hr != "" else ""
 
         writer.writerow([
             date,
             hour,
             day_of_week,
-            round(avg_hr,2) if not np.isnan(avg_hr) else "",
-            int(max_hr) if not np.isnan(max_hr) else "",
-            int(min_hr) if not np.isnan(min_hr) else "",
-            round(hr_std,2) if not np.isnan(hr_std) else "",
+            avg_hr if avg_hr == "" else round(avg_hr,2),
+            max_hr,
+            min_hr,
+            hr_std if hr_std == "" else round(hr_std,2),
             steps,
-            round(hr_relative,2) if not np.isnan(hr_relative) else ""
+            hr_relative
         ])
 
-# -------- DAILY FILE --------
+# -------- DAILY FEATURES --------
 
 total_steps = sum(hourly_steps.values())
 
@@ -108,52 +108,70 @@ rem_minutes = 0
 sleep_start_time = ""
 wake_time = ""
 
-if "sleep" in sleep_data and len(sleep_data["sleep"]) > 0:
-    sleep_entry = sleep_data["sleep"][0]
-    total_sleep = sleep_entry.get("minutesAsleep", 0)
-    sleep_start_time = sleep_entry.get("startTime","")
-    wake_time = sleep_entry.get("endTime","")
+sleep_sessions = sleep_data.get("sleep", [])
 
-    if "levels" in sleep_entry:
-        levels = sleep_entry["levels"]["summary"]
-        deep_minutes = levels.get("deep", {}).get("minutes", 0)
-        rem_minutes = levels.get("rem", {}).get("minutes", 0)
+if sleep_sessions:
+
+    start_times = []
+    end_times = []
+
+    for sleep_entry in sleep_sessions:
+
+        total_sleep += sleep_entry.get("minutesAsleep", 0)
+
+        start = sleep_entry.get("startTime","")
+        end = sleep_entry.get("endTime","")
+
+        if start:
+            start_times.append(start)
+
+        if end:
+            end_times.append(end)
+
+        levels = sleep_entry.get("levels",{}).get("summary",{})
+
+        deep_minutes += levels.get("deep",{}).get("minutes",0)
+        rem_minutes += levels.get("rem",{}).get("minutes",0)
+
+    if start_times:
+        sleep_start_time = min(start_times)
+
+    if end_times:
+        wake_time = max(end_times)
 
 deep_ratio = deep_minutes / total_sleep if total_sleep else 0
 rem_ratio = rem_minutes / total_sleep if total_sleep else 0
-sleep_deficit = 480 - total_sleep
+sleep_deficit = max(0, 480 - total_sleep)
 
-all_hr_values = [val for sublist in hourly_hr.values() for val in sublist]
+all_hr_values = [v for sub in hourly_hr.values() for v in sub]
 
-avg_hr_day = np.mean(all_hr_values) if all_hr_values else 0
-hr_std_day = np.std(all_hr_values) if all_hr_values else 0
+if all_hr_values:
+    avg_hr_day = float(np.mean(all_hr_values))
+    hr_std_day = float(np.std(all_hr_values))
+else:
+    avg_hr_day = 0
+    hr_std_day = 0
 
-activity_load = total_steps / 10000
+activity_load = min(1, total_steps / 10000)
+
+# -------- DAILY FILE --------
 
 daily_file = "data/daily_data.csv"
 
-rows = []
-if os.path.exists(daily_file):
-    with open(daily_file, "r") as f:
-        reader = csv.reader(f)
-        header = next(reader)
-        for row in reader:
-            if row[0] != date:
-                rows.append(row)
+file_exists = os.path.exists(daily_file)
 
-with open(daily_file, "w", newline="") as f:
+with open(daily_file, "a", newline="") as f:
+
     writer = csv.writer(f)
 
-    writer.writerow([
-        "date","day_of_week","resting_hr","total_steps",
-        "total_sleep","deep_ratio","rem_ratio","sleep_deficit",
-        "sleep_start_time","wake_time",
-        "avg_hr_day","hr_std_day","activity_load",
-        "mood_score","productivity_score"
-    ])
-
-    for r in rows:
-        writer.writerow(r)
+    if not file_exists:
+        writer.writerow([
+            "date","day_of_week","resting_hr","total_steps",
+            "total_sleep","deep_ratio","rem_ratio","sleep_deficit",
+            "sleep_start_time","wake_time",
+            "avg_hr_day","hr_std_day","activity_load",
+            "mood_score","productivity_score"
+        ])
 
     writer.writerow([
         date,

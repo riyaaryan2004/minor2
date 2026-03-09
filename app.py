@@ -97,8 +97,8 @@ def collect():
 
     # ===================== HOURLY PROCESSING =====================
 
-    heart_intraday = heart_intraday_data["activities-heart-intraday"]["dataset"]
-    steps_intraday = steps_intraday_data["activities-steps-intraday"]["dataset"]
+    heart_intraday = heart_intraday_data.get("activities-heart-intraday", {}).get("dataset", [])
+    steps_intraday = steps_intraday_data.get("activities-steps-intraday", {}).get("dataset", [])
 
     hourly_hr = defaultdict(list)
     hourly_steps = defaultdict(int)
@@ -111,7 +111,7 @@ def collect():
         hour = int(entry["time"].split(":")[0])
         hourly_steps[hour] += entry["value"]
 
-    resting_hr = heart_daily_data["activities-heart"][0]["value"].get("restingHeartRate", 0)
+    resting_hr = heart_daily_data.get("activities-heart",[{}])[0].get("value",{}).get("restingHeartRate",0)
 
     os.makedirs("data", exist_ok=True)
     hourly_file = "data/hourly_data.csv"
@@ -120,7 +120,7 @@ def collect():
     if os.path.exists(hourly_file):
         with open(hourly_file, "r", encoding="utf-8") as f:
             reader = csv.reader(f)
-            header = next(reader)
+            header = next(reader, None)
             for row in reader:
                 if row[0] != today:
                     existing_rows.append(row)
@@ -176,26 +176,54 @@ def collect():
     sleep_start_time = ""
     wake_time = ""
 
-    if "sleep" in sleep_data and len(sleep_data["sleep"]) > 0:
-        sleep_entry = sleep_data["sleep"][0]
-        total_sleep = sleep_entry.get("minutesAsleep", 0)
-        sleep_start_time = sleep_entry.get("startTime","")
-        wake_time = sleep_entry.get("endTime","")
+    sleep_sessions = sleep_data.get("sleep", [])
 
-        if "levels" in sleep_entry:
-            levels = sleep_entry["levels"]["summary"]
-            deep_minutes = levels.get("deep", {}).get("minutes", 0)
-            rem_minutes = levels.get("rem", {}).get("minutes", 0)
+    if sleep_sessions:
 
-    deep_ratio = deep_minutes / total_sleep if total_sleep else 0
-    rem_ratio = rem_minutes / total_sleep if total_sleep else 0
-    sleep_deficit = 480 - total_sleep
+        start_times = []
+        end_times = []
 
+        for sleep_entry in sleep_sessions:
+
+            total_sleep += sleep_entry.get("minutesAsleep", 0)
+
+            start = sleep_entry.get("startTime", "")
+            end = sleep_entry.get("endTime", "")
+
+            if start:
+                start_times.append(start)
+
+            if end:
+                end_times.append(end)
+
+            levels = sleep_entry.get("levels", {}).get("summary", {})
+
+            deep_minutes += levels.get("deep", {}).get("minutes", 0)
+            rem_minutes += levels.get("rem", {}).get("minutes", 0)
+
+        if start_times:
+            sleep_start_time = min(start_times)
+
+        if end_times:
+            wake_time = max(end_times)
+
+    # Safe calculations
+    deep_ratio = (deep_minutes / total_sleep) if total_sleep else 0
+    rem_ratio = (rem_minutes / total_sleep) if total_sleep else 0
+    sleep_deficit = max(0, 480 - total_sleep)
+
+    # HR aggregation (moved outside sleep block to avoid crash)
     all_hr_values = [val for sublist in hourly_hr.values() for val in sublist]
-    avg_hr_day = np.mean(all_hr_values) if all_hr_values else 0
-    hr_std_day = np.std(all_hr_values) if all_hr_values else 0
 
-    activity_load = total_steps / 10000
+    if all_hr_values:
+        avg_hr_day = float(np.mean(all_hr_values))
+        hr_std_day = float(np.std(all_hr_values))
+    else:
+        avg_hr_day = 0
+        hr_std_day = 0
+
+    # Activity normalization
+    activity_load = min(1, total_steps / 10000)
 
     daily_file = "data/daily_data.csv"
 
@@ -203,7 +231,7 @@ def collect():
     if os.path.exists(daily_file):
         with open(daily_file, "r", encoding="utf-8") as f:
             reader = csv.reader(f)
-            header = next(reader)
+            header = next(reader, None)
             for row in reader:
                 if row[0] != today:
                     existing_daily.append(row)
@@ -263,7 +291,7 @@ def rate():
 
     with open(daily_file, "r", encoding="utf-8") as f:
         reader = csv.reader(f)
-        header = next(reader)
+        header = next(reader, None)
 
         for row in reader:
             if row[0] == today:

@@ -122,6 +122,8 @@ def collect():
             reader = csv.reader(f)
             header = next(reader, None)
             for row in reader:
+                if not row:
+                    continue
                 if row[0] != today:
                     existing_rows.append(row)
 
@@ -207,10 +209,35 @@ def collect():
         if end_times:
             wake_time = max(end_times)
 
+    sleep_midpoint = ""
+
+    if sleep_start_time and wake_time:
+        try:
+            start_dt = datetime.fromisoformat(sleep_start_time.replace("Z",""))
+            end_dt = datetime.fromisoformat(wake_time.replace("Z",""))
+            midpoint = start_dt + (end_dt - start_dt)/2
+            sleep_midpoint = midpoint.time()
+        except:
+            sleep_midpoint = ""
+
     # Safe calculations
     deep_ratio = (deep_minutes / total_sleep) if total_sleep else 0
     rem_ratio = (rem_minutes / total_sleep) if total_sleep else 0
     sleep_deficit = max(0, 480 - total_sleep)
+
+    sleep_hours = round(total_sleep / 60, 2) if total_sleep else 0
+
+    # circadian features
+    sleep_start_hour = ""
+    wake_hour = ""
+
+    try:
+        if sleep_start_time:
+            sleep_start_hour = datetime.fromisoformat(sleep_start_time.replace("Z","")).hour
+        if wake_time:
+            wake_hour = datetime.fromisoformat(wake_time.replace("Z","")).hour
+    except:
+        pass
 
     # HR aggregation (moved outside sleep block to avoid crash)
     all_hr_values = [val for sublist in hourly_hr.values() for val in sublist]
@@ -222,8 +249,15 @@ def collect():
         avg_hr_day = 0
         hr_std_day = 0
 
+    hr_deviation = round(avg_hr_day - resting_hr, 2)
+
+    # stress signal
+    stress_index = round(hr_std_day / avg_hr_day, 4) if avg_hr_day else 0
+
     # Activity normalization
     activity_load = min(1, total_steps / 10000)
+
+    is_weekend = 1 if day_of_week >= 5 else 0
 
     daily_file = "data/daily_data.csv"
 
@@ -232,7 +266,14 @@ def collect():
         with open(daily_file, "r", encoding="utf-8") as f:
             reader = csv.reader(f)
             header = next(reader, None)
+
             for row in reader:
+                if not row:
+                    continue
+
+                while len(row) < 22:
+                    row.append("")
+
                 if row[0] != today:
                     existing_daily.append(row)
 
@@ -240,12 +281,16 @@ def collect():
         writer = csv.writer(file)
 
         writer.writerow([
-            "date","day_of_week","resting_hr","total_steps",
-            "total_sleep","deep_ratio","rem_ratio","sleep_deficit",
-            "sleep_start_time","wake_time",
-            "avg_hr_day","hr_std_day","activity_load",
-            "mood_score","productivity_score"
-        ])
+        "date","day_of_week","resting_hr","total_steps",
+        "total_sleep","sleep_hours",
+        "deep_ratio","rem_ratio","sleep_deficit",
+        "sleep_start_time","wake_time","sleep_midpoint",
+        "sleep_start_hour","wake_hour",
+        "avg_hr_day","hr_std_day","hr_deviation",
+        "stress_index",
+        "activity_load","is_weekend",
+        "mood_score","productivity_score"
+    ])
 
         for row in existing_daily:
             writer.writerow(row)
@@ -256,16 +301,23 @@ def collect():
             resting_hr,
             total_steps,
             total_sleep,
+            sleep_hours,
             round(deep_ratio,3),
             round(rem_ratio,3),
             sleep_deficit,
             sleep_start_time,
             wake_time,
+            sleep_midpoint,
+            sleep_start_hour,
+            wake_hour,
             round(avg_hr_day,2),
             round(hr_std_day,2),
+            hr_deviation,
+            stress_index,
             round(activity_load,2),
-            "",   # mood_score placeholder
-            ""    # productivity_score placeholder
+            is_weekend,
+            "",
+            ""
         ])
 
     return {"status": "Hourly and Daily data collected successfully"}
@@ -294,9 +346,16 @@ def rate():
         header = next(reader, None)
 
         for row in reader:
+            if not row:
+                continue
+
+            while len(row) < 22:
+                row.append("")
+
             if row[0] == today:
                 row[-2] = mood
                 row[-1] = productivity
+
             updated_rows.append(row)
 
     with open(daily_file, "w", newline="", encoding="utf-8") as f:

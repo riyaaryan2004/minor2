@@ -62,3 +62,9 @@ Check:
 To fix some day's data
 python repair_day.py 2026-03-04 ACCESS_TOKEN
 after running python app.py and localhost on browser
+
+________________________________________________
+
+to generate all data at once
+python generate_all_days.py YOUR_ACCESS_TOKEN
+after running python app.py and localhost on browser

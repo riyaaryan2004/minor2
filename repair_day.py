@@ -139,9 +139,32 @@ if sleep_sessions:
     if end_times:
         wake_time = max(end_times)
 
+# ----- sleep calculations -----
+
 deep_ratio = deep_minutes / total_sleep if total_sleep else 0
 rem_ratio = rem_minutes / total_sleep if total_sleep else 0
 sleep_deficit = max(0, 480 - total_sleep)
+
+sleep_hours = round(total_sleep / 60,2) if total_sleep else 0
+
+sleep_midpoint = ""
+sleep_start_hour = ""
+wake_hour = ""
+
+if sleep_start_time and wake_time:
+    try:
+        start_dt = datetime.fromisoformat(sleep_start_time.replace("Z",""))
+        end_dt = datetime.fromisoformat(wake_time.replace("Z",""))
+
+        midpoint = start_dt + (end_dt - start_dt)/2
+        sleep_midpoint = midpoint.time()
+
+        sleep_start_hour = start_dt.hour
+        wake_hour = end_dt.hour
+    except:
+        pass
+
+# -------- HR FEATURES --------
 
 all_hr_values = [v for sub in hourly_hr.values() for v in sub]
 
@@ -152,7 +175,15 @@ else:
     avg_hr_day = 0
     hr_std_day = 0
 
+hr_deviation = round(avg_hr_day - resting_hr,2)
+
+stress_index = round(hr_std_day / avg_hr_day,4) if avg_hr_day else 0
+
+# -------- ACTIVITY --------
+
 activity_load = min(1, total_steps / 10000)
+
+is_weekend = 1 if day_of_week >= 5 else 0
 
 # -------- DAILY FILE --------
 
@@ -166,11 +197,15 @@ with open(daily_file, "a", newline="") as f:
 
     if not file_exists:
         writer.writerow([
-            "date","day_of_week","resting_hr","total_steps",
-            "total_sleep","deep_ratio","rem_ratio","sleep_deficit",
-            "sleep_start_time","wake_time",
-            "avg_hr_day","hr_std_day","activity_load",
-            "mood_score","productivity_score"
+        "date","day_of_week","resting_hr","total_steps",
+        "total_sleep","sleep_hours",
+        "deep_ratio","rem_ratio","sleep_deficit",
+        "sleep_start_time","wake_time","sleep_midpoint",
+        "sleep_start_hour","wake_hour",
+        "avg_hr_day","hr_std_day","hr_deviation",
+        "stress_index",
+        "activity_load","is_weekend",
+        "mood_score","productivity_score"
         ])
 
     writer.writerow([
@@ -179,14 +214,21 @@ with open(daily_file, "a", newline="") as f:
         resting_hr,
         total_steps,
         total_sleep,
+        sleep_hours,
         round(deep_ratio,3),
         round(rem_ratio,3),
         sleep_deficit,
         sleep_start_time,
         wake_time,
+        sleep_midpoint,
+        sleep_start_hour,
+        wake_hour,
         round(avg_hr_day,2),
         round(hr_std_day,2),
+        hr_deviation,
+        stress_index,
         round(activity_load,2),
+        is_weekend,
         "",
         ""
     ])

@@ -144,7 +144,7 @@ df = df.drop(columns=["StepTotal"], errors="ignore")
 df = df.drop(columns=["Calories_y"])
 df = df.rename(columns={"Calories_x": "Calories"})
 
-df.to_csv("fitbit_final_dataset.csv", index=False)
+df.to_csv("data/fitbit_final_dataset.csv", index=False)
 
 print("Final dataset created")
 print("Dataset shape:", df.shape)

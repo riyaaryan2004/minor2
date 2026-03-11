@@ -1,0 +1,21 @@
+Download Fitbit dataset from Kaggle:
+https://www.kaggle.com/datasets/arashnic/fitbit
+
+Place the files inside:
+Minor_2/data/
+
+Required files
+dailyActivity_merged.csv
+dailyActivity_merged (2).csv
+heartrate_seconds_merged.csv
+heartrate_seconds_merged (2).csv
+hourlyCalories_merged.csv
+hourlyCalories_merged (2).csv
+hourlyIntensities_merged.csv
+hourlyIntensities_merged (2).csv
+hourlySteps_merged.csv
+hourlySteps_merged (2).csv
+sleepDay_merged.csv
+
+Then run: 
+python prepare_dataset.py

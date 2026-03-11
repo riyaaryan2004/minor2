@@ -1,0 +1,27 @@
+Column	                                    Meaning
+Id	                        Unique identifier of the Fitbit user.
+date	                    The specific day the data corresponds to.
+TotalSteps	                Total number of steps taken that day (from daily activity summary).
+Calories_x	                Total calories burned that day from the daily activity file.
+VeryActiveMinutes	        Minutes spent in high-intensity activity (running, intense workouts).
+FairlyActiveMinutes	        Minutes spent in moderate activity (brisk walking, light exercise).
+LightlyActiveMinutes	    Minutes spent in light movement (casual walking, daily tasks).
+SedentaryMinutes	        Minutes spent inactive/sitting during the day.
+StepTotal	                Total steps calculated from hourly step data (should be close to TotalSteps).
+Calories_y	                Calories calculated from hourly calorie data.
+TotalIntensity	            Average activity intensity across the day from hourly intensity data.
+avg_hr	                    Average heart rate of the user that day.
+max_hr	                    Maximum heart rate reached during the day.
+min_hr	                    Minimum heart rate during the day.
+hr_std	                    Standard deviation of heart rate (variation → indicates stress/activity changes).
+TotalMinutesAsleep	        Total minutes the user was asleep that night.
+TotalTimeInBed	            Total time the user spent in bed.
+sleep_hours	                Total sleep converted into hours.
+sleep_efficiency	        Sleep quality = minutes asleep ÷ time in bed.
+
+
+
+
+OUTPUT VARIABLES
+mood_score                  Estimated mood level derived from sleep, activity, and HR stability.
+productivity_score          Estimated productivity derived from activity level, sleep, and sedentary behavior.

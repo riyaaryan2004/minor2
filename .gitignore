@@ -1,0 +1,13 @@
+# Ignore datasets
+data/
+*.csv
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS junk
+.DS_Store

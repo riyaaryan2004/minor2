@@ -1,6 +1,6 @@
 # Ignore datasets
-data/
-*.csv
+#data/
+#*.csv
 
 # Python cache
 __pycache__/

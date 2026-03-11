@@ -1,0 +1,151 @@
+import pandas as pd
+import os
+# print(os.listdir())
+
+daily1 = pd.read_csv("data/dailyActivity_merged.csv")
+daily2 = pd.read_csv("data/dailyActivity_merged (2).csv")
+
+sleep = pd.read_csv("data/sleepDay_merged.csv")
+
+hsteps1 = pd.read_csv("data/hourlySteps_merged.csv")
+hsteps2 = pd.read_csv("data/hourlySteps_merged (2).csv")
+
+hcal1 = pd.read_csv("data/hourlyCalories_merged.csv")
+hcal2 = pd.read_csv("data/hourlyCalories_merged (2).csv")
+
+hint1 = pd.read_csv("data/hourlyIntensities_merged.csv")
+hint2 = pd.read_csv("data/hourlyIntensities_merged (2).csv")
+
+hr1 = pd.read_csv("data/heartrate_seconds_merged.csv")
+hr2 = pd.read_csv("data/heartrate_seconds_merged (2).csv")
+
+daily = pd.concat([daily1, daily2], ignore_index=True)
+hourly_steps = pd.concat([hsteps1, hsteps2], ignore_index=True)
+hourly_cal = pd.concat([hcal1, hcal2], ignore_index=True)
+hourly_int = pd.concat([hint1, hint2], ignore_index=True)
+hr = pd.concat([hr1, hr2], ignore_index=True)
+
+# clean data columns
+daily["ActivityDate"] = pd.to_datetime(daily["ActivityDate"])
+
+sleep["SleepDay"] = pd.to_datetime(sleep["SleepDay"])
+sleep["date"] = sleep["SleepDay"].dt.date
+
+hourly_steps["ActivityHour"] = pd.to_datetime(hourly_steps["ActivityHour"])
+hourly_steps["date"] = hourly_steps["ActivityHour"].dt.date
+
+hourly_cal["ActivityHour"] = pd.to_datetime(hourly_cal["ActivityHour"])
+hourly_cal["date"] = hourly_cal["ActivityHour"].dt.date
+
+hourly_int["ActivityHour"] = pd.to_datetime(hourly_int["ActivityHour"])
+hourly_int["date"] = hourly_int["ActivityHour"].dt.date
+
+hr["Time"] = pd.to_datetime(hr["Time"])
+hr["date"] = hr["Time"].dt.date
+
+# aggregate houly -> daily
+# Hourly steps/calories/intensity are combined to create one daily value per user.
+hourly_steps_daily = (
+hourly_steps.groupby(["Id", "date"])["StepTotal"]
+.sum()
+.reset_index()
+)
+
+hourly_cal_daily = (
+hourly_cal.groupby(["Id", "date"])["Calories"]
+.sum()
+.reset_index()
+)
+
+hourly_int_daily = (
+hourly_int.groupby(["Id", "date"])["TotalIntensity"]
+.mean()
+.reset_index()
+)
+
+# Heart rate -> daily features
+# Second-level heart rate data is summarized into daily stats (avg, max, min, variability).
+hr_daily = (
+hr.groupby(["Id", "date"])["Value"]
+.agg(
+avg_hr="mean",
+max_hr="max",
+min_hr="min",
+hr_std="std"
+)
+.reset_index()
+)
+
+# Sleep features
+# Sleep data is used to compute daily sleep hours and sleep efficiency.
+sleep_daily = sleep[
+["Id", "date", "TotalMinutesAsleep", "TotalTimeInBed"]
+].copy()
+
+sleep_daily["sleep_hours"] = sleep_daily["TotalMinutesAsleep"] / 60
+
+sleep_daily["sleep_efficiency"] = (
+sleep_daily["TotalMinutesAsleep"] /
+sleep_daily["TotalTimeInBed"]
+)
+
+# Prepare daily dataset
+# Important columns from the daily activity file are selected as main lifestyle features.
+daily["date"] = daily["ActivityDate"].dt.date
+
+daily_main = daily[
+[
+"Id",
+"date",
+"TotalSteps",
+"Calories",
+"VeryActiveMinutes",
+"FairlyActiveMinutes",
+"LightlyActiveMinutes",
+"SedentaryMinutes",
+]
+]
+
+# meage
+df = daily_main.merge(hourly_steps_daily, on=["Id", "date"], how="left")
+df = df.merge(hourly_cal_daily, on=["Id", "date"], how="left")
+df = df.merge(hourly_int_daily, on=["Id", "date"], how="left")
+df = df.merge(hr_daily, on=["Id", "date"], how="left")
+df = df.merge(sleep_daily, on=["Id", "date"], how="left")
+
+# missing values
+df["sleep_hours"] = df["sleep_hours"].fillna(df["sleep_hours"].mean())
+df["hr_std"] = df["hr_std"].fillna(df["hr_std"].mean())
+
+df = df.fillna(df.mean(numeric_only=True))
+
+# mood score
+df["mood_score"] = (
+0.4 * (df["sleep_hours"] / 8)
++ 0.3 * (df["TotalSteps"] / 12000)
++ 0.3 * (1 / (1 + df["hr_std"]))
+)
+
+df["mood_score"] = (df["mood_score"] * 10).clip(0, 10)
+
+# productivity score
+df["productivity_score"] = (
+0.5 * (df["VeryActiveMinutes"] + df["FairlyActiveMinutes"]) / 90
++ 0.3 * (df["sleep_hours"] / 8)
++ 0.2 * (1 - df["SedentaryMinutes"] / 1440)
+)
+
+df["productivity_score"] = (
+df["productivity_score"] * 10
+).clip(0, 10)
+
+# cleaning duplicate features
+df = df.drop(columns=["StepTotal"], errors="ignore")
+df = df.drop(columns=["Calories_y"])
+df = df.rename(columns={"Calories_x": "Calories"})
+
+df.to_csv("data/fitbit_final_dataset.csv", index=False)
+
+print("Final dataset created")
+print("Dataset shape:", df.shape)
+print(df.head())

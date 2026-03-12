@@ -9,11 +9,15 @@ from sklearn.ensemble import RandomForestRegressor
 from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 
+
 # ===============================
 # Load dataset
 # ===============================
 
-df = pd.read_csv("data/fitbit_final_dataset.csv")# ===============================
+df = pd.read_csv("data/fitbit_final_dataset.csv")
+
+
+# ===============================
 # Features and Targets
 # ===============================
 
@@ -35,13 +39,6 @@ X = df[features]
 y_mood = df["mood_score"]
 y_prod = df["productivity_score"]
 
-# ===============================
-# Train Test Split
-# ===============================
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y_mood, test_size=0.2, random_state=42
-)
 
 # ===============================
 # Models
@@ -66,15 +63,20 @@ models = {
     )
 }
 
+
 # ===============================
-# Train + Evaluate
+# Train + Evaluate MOOD Models
 # ===============================
 
-results = []
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y_mood, test_size=0.2, random_state=42
+)
+
+mood_results = []
 
 for name, model in models.items():
 
-    print(f"Training {name}...")
+    print(f"Training {name} for Mood...")
 
     model.fit(X_train, y_train)
 
@@ -84,39 +86,61 @@ for name, model in models.items():
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     r2 = r2_score(y_test, y_pred)
 
-    results.append({
+    mood_results.append({
         "Model": name,
         "MAE": mae,
         "RMSE": rmse,
         "R2": r2
     })
 
-    # save model
     joblib.dump(model, f"models/{name}_mood_model.pkl")
 
+
 # ===============================
-# Train Productivity Models
+# Train + Evaluate PRODUCTIVITY Models
 # ===============================
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y_prod, test_size=0.2, random_state=42
 )
 
+prod_results = []
+
 for name, model in models.items():
 
-    print(f"Training {name} for productivity...")
+    print(f"Training {name} for Productivity...")
 
     model.fit(X_train, y_train)
 
+    y_pred = model.predict(X_test)
+
+    mae = mean_absolute_error(y_test, y_pred)
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    r2 = r2_score(y_test, y_pred)
+
+    prod_results.append({
+        "Model": name,
+        "MAE": mae,
+        "RMSE": rmse,
+        "R2": r2
+    })
+
     joblib.dump(model, f"models/{name}_productivity_model.pkl")
 
+
 # ===============================
-# Results DataFrame
+# Convert to DataFrame
 # ===============================
 
-results_df = pd.DataFrame(results)
+mood_df = pd.DataFrame(mood_results)
+prod_df = pd.DataFrame(prod_results)
 
-print(results_df)
+print("\nMood Model Results")
+print(mood_df)
+
+print("\nProductivity Model Results")
+print(prod_df)
+
 
 # ===============================
 # Save comparison to TXT
@@ -127,13 +151,26 @@ with open("results/model_comparison.txt", "w") as f:
     f.write("MODEL COMPARISON RESULTS\n")
     f.write("========================\n\n")
 
-    for _, row in results_df.iterrows():
+    f.write("MOOD PREDICTION MODELS\n")
+    f.write("----------------------\n")
+
+    for _, row in mood_df.iterrows():
 
         f.write(f"Model: {row['Model']}\n")
         f.write(f"MAE: {row['MAE']:.4f}\n")
         f.write(f"RMSE: {row['RMSE']:.4f}\n")
-        f.write(f"R2 Score: {row['R2']:.4f}\n")
-        f.write("\n")
+        f.write(f"R2 Score: {row['R2']:.4f}\n\n")
+
+    f.write("\nPRODUCTIVITY PREDICTION MODELS\n")
+    f.write("------------------------------\n")
+
+    for _, row in prod_df.iterrows():
+
+        f.write(f"Model: {row['Model']}\n")
+        f.write(f"MAE: {row['MAE']:.4f}\n")
+        f.write(f"RMSE: {row['RMSE']:.4f}\n")
+        f.write(f"R2 Score: {row['R2']:.4f}\n\n")
+
 
 print("Models saved successfully")
-print("Comparison saved to model_comparison.txt")
+print("Comparison saved to results/model_comparison.txt")

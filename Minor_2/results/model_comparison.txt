@@ -1,0 +1,18 @@
+MODEL COMPARISON RESULTS
+========================
+
+Model: RandomForest
+MAE: 0.0484
+RMSE: 0.1046
+R2 Score: 0.9939
+
+Model: CatBoost
+MAE: 0.0477
+RMSE: 0.1264
+R2 Score: 0.9911
+
+Model: LightGBM
+MAE: 0.0756
+RMSE: 0.1535
+R2 Score: 0.9868
+

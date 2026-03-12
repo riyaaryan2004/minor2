@@ -1,6 +1,9 @@
+# models trained after feature reduction
+
 import pandas as pd
 import numpy as np
 import joblib
+import os
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -11,6 +14,14 @@ from lightgbm import LGBMRegressor
 
 
 # ===============================
+# Create folders if not exist
+# ===============================
+
+os.makedirs("models", exist_ok=True)
+os.makedirs("results", exist_ok=True)
+
+
+# ===============================
 # Load dataset
 # ===============================
 
@@ -18,20 +29,12 @@ df = pd.read_csv("data/fitbit_final_dataset.csv")
 
 
 # ===============================
-# Features and Targets
+# Feature Reduction
 # ===============================
 
 features = [
     "TotalSteps",
-    "VeryActiveMinutes",
-    "FairlyActiveMinutes",
-    "LightlyActiveMinutes",
-    "SedentaryMinutes",
-    "TotalIntensity",
-    "sleep_hours",
-    "sleep_efficiency",
-    "avg_hr",
-    "hr_std"
+    "sleep_hours"
 ]
 
 X = df[features]
@@ -45,6 +48,7 @@ y_prod = df["productivity_score"]
 # ===============================
 
 models = {
+
     "RandomForest": RandomForestRegressor(
         n_estimators=200,
         random_state=42
@@ -64,9 +68,11 @@ models = {
 }
 
 
-# ===============================
-# Train + Evaluate MOOD Models
-# ===============================
+# =====================================================
+# TRAIN MOOD MODELS
+# =====================================================
+
+print("\nTraining FR Mood Models...\n")
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y_mood, test_size=0.2, random_state=42
@@ -76,7 +82,7 @@ mood_results = []
 
 for name, model in models.items():
 
-    print(f"Training {name} for Mood...")
+    print(f"Training {name} (Mood)...")
 
     model.fit(X_train, y_train)
 
@@ -93,12 +99,15 @@ for name, model in models.items():
         "R2": r2
     })
 
-    joblib.dump(model, f"models/{name}_mood_model.pkl")
+    # save model with FR prefix
+    joblib.dump(model, f"models/fr_{name}_mood_model.pkl")
 
 
-# ===============================
-# Train + Evaluate PRODUCTIVITY Models
-# ===============================
+# =====================================================
+# TRAIN PRODUCTIVITY MODELS
+# =====================================================
+
+print("\nTraining FR Productivity Models...\n")
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y_prod, test_size=0.2, random_state=42
@@ -108,7 +117,7 @@ prod_results = []
 
 for name, model in models.items():
 
-    print(f"Training {name} for Productivity...")
+    print(f"Training {name} (Productivity)...")
 
     model.fit(X_train, y_train)
 
@@ -125,34 +134,37 @@ for name, model in models.items():
         "R2": r2
     })
 
-    joblib.dump(model, f"models/{name}_productivity_model.pkl")
+    # save model with FR prefix
+    joblib.dump(model, f"models/fr_{name}_productivity_model.pkl")
 
 
-# ===============================
-# Convert to DataFrame
-# ===============================
+# =====================================================
+# Results DataFrame
+# =====================================================
 
 mood_df = pd.DataFrame(mood_results)
 prod_df = pd.DataFrame(prod_results)
 
-print("\nMood Model Results")
+print("\nMood Results")
 print(mood_df)
 
-print("\nProductivity Model Results")
+print("\nProductivity Results")
 print(prod_df)
 
 
-# ===============================
-# Save comparison to TXT
-# ===============================
+# =====================================================
+# Save results
+# =====================================================
 
-with open("results/model_comparison.txt", "w") as f:
+with open("results/fr_model_comparison.txt", "w") as f:
 
-    f.write("MODEL COMPARISON RESULTS\n")
-    f.write("========================\n\n")
+    f.write("FEATURE REDUCED MODEL RESULTS\n")
+    f.write("=============================\n\n")
 
-    f.write("MOOD PREDICTION MODELS\n")
-    f.write("----------------------\n")
+    f.write("Features Used:\n")
+    f.write("TotalSteps, sleep_hours\n\n")
+
+    f.write("------------ MOOD ------------\n\n")
 
     for _, row in mood_df.iterrows():
 
@@ -161,8 +173,7 @@ with open("results/model_comparison.txt", "w") as f:
         f.write(f"RMSE: {row['RMSE']:.4f}\n")
         f.write(f"R2 Score: {row['R2']:.4f}\n\n")
 
-    f.write("\nPRODUCTIVITY PREDICTION MODELS\n")
-    f.write("------------------------------\n")
+    f.write("\n------------ PRODUCTIVITY ------------\n\n")
 
     for _, row in prod_df.iterrows():
 
@@ -172,5 +183,5 @@ with open("results/model_comparison.txt", "w") as f:
         f.write(f"R2 Score: {row['R2']:.4f}\n\n")
 
 
-print("Models saved successfully")
-print("Comparison saved to results/model_comparison.txt")
+print("\nFR models saved successfully")
+print("Results saved to results/fr_model_comparison.txt")

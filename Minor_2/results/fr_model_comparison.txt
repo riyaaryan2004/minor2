@@ -1,0 +1,41 @@
+FEATURE REDUCED MODEL RESULTS
+=============================
+
+Features Used:
+TotalSteps, sleep_hours
+
+------------ MOOD ------------
+
+Model: RandomForest
+MAE: 0.0504
+RMSE: 0.0932
+R2 Score: 0.9951
+
+Model: CatBoost
+MAE: 0.0430
+RMSE: 0.0847
+R2 Score: 0.9960
+
+Model: LightGBM
+MAE: 0.0710
+RMSE: 0.1479
+R2 Score: 0.9878
+
+
+------------ PRODUCTIVITY ------------
+
+Model: RandomForest
+MAE: 1.0710
+RMSE: 1.4975
+R2 Score: 0.5356
+
+Model: CatBoost
+MAE: 0.9289
+RMSE: 1.2839
+R2 Score: 0.6586
+
+Model: LightGBM
+MAE: 1.0136
+RMSE: 1.4408
+R2 Score: 0.5701
+

@@ -1,0 +1,17 @@
+# MODEL PERFORMANCE ANALYSIS
+
+• Two experiments were conducted to predict mood and productivity using Fitbit activity and physiological data.
+
+• In the first experiment, all features were used and the models achieved very high prediction accuracy for both mood and productivity.
+
+• CatBoost performed best overall among the models, particularly for productivity prediction.
+
+• In the second experiment, feature reduction was applied using only TotalSteps and sleep_hours.
+
+• Mood prediction remained highly accurate even with reduced features, indicating that sleep and physical activity strongly influence mood.
+
+• Productivity prediction accuracy decreased significantly after feature reduction.
+
+• This suggests that productivity depends on additional factors such as activity intensity, sedentary behavior, and heart rate patterns.
+
+• Overall, mood can be predicted using minimal wearable data, while productivity prediction requires a richer set of features.

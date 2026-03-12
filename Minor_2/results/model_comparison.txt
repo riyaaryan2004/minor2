@@ -1,6 +1,8 @@
 MODEL COMPARISON RESULTS
 ========================
 
+MOOD PREDICTION MODELS
+----------------------
 Model: RandomForest
 MAE: 0.0484
 RMSE: 0.1046
@@ -15,4 +17,22 @@ Model: LightGBM
 MAE: 0.0756
 RMSE: 0.1535
 R2 Score: 0.9868
+
+
+PRODUCTIVITY PREDICTION MODELS
+------------------------------
+Model: RandomForest
+MAE: 0.1244
+RMSE: 0.2541
+R2 Score: 0.9866
+
+Model: CatBoost
+MAE: 0.0722
+RMSE: 0.1376
+R2 Score: 0.9961
+
+Model: LightGBM
+MAE: 0.0967
+RMSE: 0.1778
+R2 Score: 0.9935
 

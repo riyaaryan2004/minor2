@@ -10,17 +10,11 @@ from catboost import CatBoostRegressor
 from lightgbm import LGBMRegressor
 
 
-# ===============================
 # Load dataset
-# ===============================
-
 df = pd.read_csv("data/fitbit_final_dataset.csv")
 
 
-# ===============================
 # Features and Targets
-# ===============================
-
 features = [
     "TotalSteps",
     "VeryActiveMinutes",
@@ -40,10 +34,7 @@ y_mood = df["mood_score"]
 y_prod = df["productivity_score"]
 
 
-# ===============================
 # Models
-# ===============================
-
 models = {
     "RandomForest": RandomForestRegressor(
         n_estimators=200,
@@ -128,10 +119,7 @@ for name, model in models.items():
     joblib.dump(model, f"models/{name}_productivity_model.pkl")
 
 
-# ===============================
 # Convert to DataFrame
-# ===============================
-
 mood_df = pd.DataFrame(mood_results)
 prod_df = pd.DataFrame(prod_results)
 
@@ -142,10 +130,7 @@ print("\nProductivity Model Results")
 print(prod_df)
 
 
-# ===============================
 # Save comparison to TXT
-# ===============================
-
 with open("results/model_comparison.txt", "w") as f:
 
     f.write("MODEL COMPARISON RESULTS\n")

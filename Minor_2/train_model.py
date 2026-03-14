@@ -59,8 +59,10 @@ models = {
 # Train + Evaluate MOOD Models
 # ===============================
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y_mood, test_size=0.2, random_state=42
+X_train, X_test, y_mood_train, y_mood_test, y_prod_train, y_prod_test = train_test_split(
+    X, y_mood, y_prod,
+    test_size=0.2,
+    random_state=42
 )
 
 mood_results = []
@@ -69,13 +71,13 @@ for name, model in models.items():
 
     print(f"Training {name} for Mood...")
 
-    model.fit(X_train, y_train)
+    model.fit(X_train, y_mood_train)
 
     y_pred = model.predict(X_test)
 
-    mae = mean_absolute_error(y_test, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    r2 = r2_score(y_test, y_pred)
+    mae = mean_absolute_error(y_mood_test, y_pred)
+    rmse = np.sqrt(mean_squared_error(y_mood_test, y_pred))
+    r2 = r2_score(y_mood_test, y_pred)
 
     mood_results.append({
         "Model": name,
@@ -91,9 +93,7 @@ for name, model in models.items():
 # Train + Evaluate PRODUCTIVITY Models
 # ===============================
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y_prod, test_size=0.2, random_state=42
-)
+
 
 prod_results = []
 
@@ -101,13 +101,13 @@ for name, model in models.items():
 
     print(f"Training {name} for Productivity...")
 
-    model.fit(X_train, y_train)
+    model.fit(X_train, y_prod_train)
 
     y_pred = model.predict(X_test)
 
-    mae = mean_absolute_error(y_test, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    r2 = r2_score(y_test, y_pred)
+    mae = mean_absolute_error(y_prod_test, y_pred)
+    rmse = np.sqrt(mean_squared_error(y_prod_test, y_pred))
+    r2 = r2_score(y_prod_test, y_pred)
 
     prod_results.append({
         "Model": name,

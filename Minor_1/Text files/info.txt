@@ -36,3 +36,32 @@ wake_time	        Time (optional)	Kab uthe	                    Routine stability
 avg_hr_day	        Float	        Day ka average HR	            Overall stress level
 hr_std_day	        Float	        HR variability entire day	    Mental fluctuation
 activity_load	    Float	        Weighted exertion score	        Fatigue indicator
+
+
+| Score  | Meaning            | Example Situation                       |
+| ------ | ------------------ | --------------------------------------- |
+| **1**  | Extremely bad mood | Very stressed, upset, arguments         |
+| **2**  | Very low mood      | Sad, mentally drained                   |
+| **3**  | Low mood           | Irritated, negative day                 |
+| **4**  | Slightly low       | Not feeling great                       |
+| **5**  | Neutral            | Just normal day                         |
+| **6**  | Okay / decent      | Mood fine, nothing special              |
+| **7**  | Good               | Positive, relaxed                       |
+| **8**  | Very good          | Happy, enjoying the day                 |
+| **9**  | Great mood         | Excited, energetic                      |
+| **10** | Excellent          | Extremely happy (festival, big success) |
+
+
+
+| Score  | Meaning               | Example Situation            |
+| ------ | --------------------- | ---------------------------- |
+| **1**  | No work done          | Lazy day, mostly resting     |
+| **2**  | Very low productivity | Almost nothing completed     |
+| **3**  | Low productivity      | Few tasks done               |
+| **4**  | Slightly low          | Some work but below normal   |
+| **5**  | Average               | Normal daily work            |
+| **6**  | Decent productivity   | Completed a few tasks        |
+| **7**  | Good productivity     | Good progress                |
+| **8**  | Very productive       | Many tasks finished          |
+| **9**  | Highly productive     | Major work completed         |
+| **10** | Extremely productive  | Exceptional focus and output |

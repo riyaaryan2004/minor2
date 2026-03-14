@@ -1,0 +1,2 @@
+Mood prediction → CatBoost
+Productivity prediction → RandomForest

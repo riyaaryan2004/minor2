@@ -24,8 +24,7 @@ os.makedirs(plot_dir, exist_ok=True)
 # -----------------------------
 # Get numeric columns
 # -----------------------------
-numeric_cols = df.select_dtypes(include=["float64","int64"]).columns
-
+numeric_cols = df.select_dtypes(include=["float64","int64"]).columns.drop("Id")
 # -----------------------------
 # 1. Feature Distribution (ALL in one image)
 # -----------------------------
@@ -53,6 +52,7 @@ plt.close()
 # -----------------------------
 # 2. Combined Boxplot (ALL features)
 # -----------------------------
+#df.drop("Id", axis=1, inplace=True)
 plt.figure(figsize=(14,6))
 sns.boxplot(data=df[numeric_cols])
 plt.xticks(rotation=45)
@@ -65,7 +65,11 @@ plt.close()
 # 3. Correlation Heatmap
 # -----------------------------
 plt.figure(figsize=(12,8))
-sns.heatmap(df.corr(numeric_only=True), annot=True, cmap="coolwarm")
+sns.heatmap(
+    df[numeric_cols].corr(),
+    cmap="coolwarm",
+    annot=False
+)
 plt.title("Feature Correlation Heatmap")
 plt.tight_layout()
 plt.savefig(f"{plot_dir}/correlation_heatmap.png")

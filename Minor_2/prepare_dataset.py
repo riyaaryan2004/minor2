@@ -40,8 +40,11 @@ hourly_cal["date"] = hourly_cal["ActivityHour"].dt.date
 hourly_int["ActivityHour"] = pd.to_datetime(hourly_int["ActivityHour"])
 hourly_int["date"] = hourly_int["ActivityHour"].dt.date
 
-hr["Time"] = pd.to_datetime(hr["Time"])
+hr["Time"] = pd.to_datetime(hr["Time"], errors="coerce")
 hr["date"] = hr["Time"].dt.date
+
+# drop rows where datetime failed
+hr = hr.dropna(subset=["date"])
 
 # aggregate houly -> daily
 # Hourly steps/calories/intensity are combined to create one daily value per user.
@@ -58,8 +61,8 @@ hourly_cal.groupby(["Id", "date"])["Calories"]
 )
 
 hourly_int_daily = (
-hourly_int.groupby(["Id", "date"])["TotalIntensity"]
-.mean()
+hourly_int.groupby(["Id","date"])["TotalIntensity"]
+.sum()
 .reset_index()
 )
 
@@ -76,11 +79,16 @@ hr_std="std"
 .reset_index()
 )
 
+hr_daily["hr_range"] = hr_daily["max_hr"] - hr_daily["min_hr"]
+
 # Sleep features
 # Sleep data is used to compute daily sleep hours and sleep efficiency.
-sleep_daily = sleep[
-["Id", "date", "TotalMinutesAsleep", "TotalTimeInBed"]
-].copy()
+sleep_daily = (
+sleep.groupby(["Id","date"])
+[["TotalMinutesAsleep","TotalTimeInBed"]]
+.sum()
+.reset_index()
+)
 
 sleep_daily["sleep_hours"] = sleep_daily["TotalMinutesAsleep"] / 60
 
@@ -107,23 +115,39 @@ daily_main = daily[
 ]
 
 # meage
-df = daily_main.merge(hourly_steps_daily, on=["Id", "date"], how="left")
-df = df.merge(hourly_cal_daily, on=["Id", "date"], how="left")
+df = daily_main.merge(hourly_cal_daily, on=["Id", "date"], how="left")
 df = df.merge(hourly_int_daily, on=["Id", "date"], how="left")
 df = df.merge(hr_daily, on=["Id", "date"], how="left")
 df = df.merge(sleep_daily, on=["Id", "date"], how="left")
 
-# missing values
-df["sleep_hours"] = df["sleep_hours"].fillna(df["sleep_hours"].mean())
-df["hr_std"] = df["hr_std"].fillna(df["hr_std"].mean())
+df = df.drop_duplicates(subset=["Id","date"])
 
-df = df.fillna(df.mean(numeric_only=True))
+# missing values
+# fill sleep
+df["sleep_hours"] = df["sleep_hours"].fillna(df["sleep_hours"].median())
+df["sleep_efficiency"] = df["sleep_efficiency"].fillna(df["sleep_efficiency"].median())
+
+# fill heart rate
+df["hr_std"] = df["hr_std"].fillna(df["hr_std"].median())
+df["avg_hr"] = df["avg_hr"].fillna(df["avg_hr"].median())
+df["max_hr"] = df["max_hr"].fillna(df["max_hr"].median())
+df["min_hr"] = df["min_hr"].fillna(df["min_hr"].median())
+df["hr_range"] = df["hr_range"].fillna(df["hr_range"].median())
+
+# fill activity
+df["TotalIntensity"] = df["TotalIntensity"].fillna(df["TotalIntensity"].median())
+print("Unique HR values:", df["avg_hr"].nunique())
+print("Unique sleep values:", df["sleep_hours"].nunique())
+
+df = df[df["TotalSteps"] > 0]
 
 # mood score
 df["mood_score"] = (
-0.4 * (df["sleep_hours"] / 8)
-+ 0.3 * (df["TotalSteps"] / 12000)
-+ 0.3 * (1 / (1 + df["hr_std"]))
+0.35 * (df["sleep_hours"]/8) +
+0.25 * (df["VeryActiveMinutes"]/60) +
+0.20 * (1 - df["SedentaryMinutes"]/1440) +
+0.10 * (df["sleep_efficiency"]) +
+0.10 * (1/(1+df["hr_std"]))
 )
 
 df["mood_score"] = (df["mood_score"] * 10).clip(0, 10)
@@ -143,6 +167,9 @@ df["productivity_score"] * 10
 df = df.drop(columns=["StepTotal"], errors="ignore")
 df = df.drop(columns=["Calories_y"])
 df = df.rename(columns={"Calories_x": "Calories"})
+
+print(df.head())
+print(df.describe())
 
 df.to_csv("data/fitbit_final_dataset.csv", index=False)
 

@@ -7,35 +7,35 @@ TotalSteps, sleep_hours
 ------------ MOOD ------------
 
 Model: RandomForest
-MAE: 0.0504
-RMSE: 0.0932
-R2 Score: 0.9951
+MAE: 0.7365
+RMSE: 1.0664
+R2 Score: 0.4694
 
 Model: CatBoost
-MAE: 0.0430
-RMSE: 0.0847
-R2 Score: 0.9960
+MAE: 0.6677
+RMSE: 0.9597
+R2 Score: 0.5703
 
 Model: LightGBM
-MAE: 0.0710
-RMSE: 0.1479
-R2 Score: 0.9878
+MAE: 0.7354
+RMSE: 1.0309
+R2 Score: 0.5041
 
 
 ------------ PRODUCTIVITY ------------
 
 Model: RandomForest
-MAE: 1.0710
-RMSE: 1.4975
-R2 Score: 0.5356
+MAE: 1.1311
+RMSE: 1.5674
+R2 Score: 0.4943
 
 Model: CatBoost
-MAE: 0.9289
-RMSE: 1.2839
-R2 Score: 0.6586
+MAE: 1.0010
+RMSE: 1.3886
+R2 Score: 0.6031
 
 Model: LightGBM
-MAE: 1.0136
+MAE: 1.0452
 RMSE: 1.4408
-R2 Score: 0.5701
+R2 Score: 0.5727
 

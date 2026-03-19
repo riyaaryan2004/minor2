@@ -1,29 +1,7 @@
 import joblib
 import pandas as pd
 
-# load models
-mood_model = joblib.load("saved_models/catboost_mood.pkl")
-prod_model = joblib.load("saved_models/random_forest_productivity.pkl")
-
-# read CSV
-df = pd.read_csv("data/daily_data.csv")
-
-# latest day
-latest = df.tail(1)
-
-# remove non-numeric columns
-X = latest.drop(columns=[
-    "date",
-    "sleep_start_time",
-    "wake_time",
-    "sleep_midpoint",
-    "mood_score",
-    "productivity_score"
-], errors="ignore")
-
-
 # -------- MOOD TAGS --------
-
 def mood_label(score):
 
     score = round(score)
@@ -45,7 +23,6 @@ def mood_label(score):
 
 
 # -------- PRODUCTIVITY TAGS --------
-
 def prod_label(score):
 
     score = round(score)
@@ -66,15 +43,46 @@ def prod_label(score):
     return mapping.get(score,"Unknown")
 
 
-# -------- PREDICTION --------
+# -------- MAIN FUNCTION --------
+def predict_day():
 
-mood = mood_model.predict(X)[0]
-prod = prod_model.predict(X)[0]
+    # load models
+    mood_model = joblib.load("saved_models/catboost_mood.pkl")
+    prod_model = joblib.load("saved_models/random_forest_productivity.pkl")
 
-print("\nPrediction for latest day\n")
+    # read CSV
+    df = pd.read_csv("data/daily_data.csv")
 
-print("Mood Score:", round(mood,2))
-print("Mood Meaning:", mood_label(mood))
+    # latest day
+    latest = df.tail(1)
 
-print("Productivity Score:", round(prod,2))
-print("Productivity Meaning:", prod_label(prod))
+    # remove non-numeric columns
+    X = latest.drop(columns=[
+        "date",
+        "sleep_start_time",
+        "wake_time",
+        "sleep_midpoint",
+        "mood_score",
+        "productivity_score"
+    ], errors="ignore")
+
+    # -------- PREDICTION --------
+    mood = mood_model.predict(X)[0]
+    prod = prod_model.predict(X)[0]
+
+    # -------- PRINT (same as your original) --------
+    print("\nPrediction for latest day\n")
+
+    print("Mood Score:", round(mood,2))
+    print("Mood Meaning:", mood_label(mood))
+
+    print("Productivity Score:", round(prod,2))
+    print("Productivity Meaning:", prod_label(prod))
+
+    # 🔥 IMPORTANT: return values for evaluation
+    return mood, prod
+
+
+# -------- RUN DIRECTLY --------
+if __name__ == "__main__":
+    predict_day()

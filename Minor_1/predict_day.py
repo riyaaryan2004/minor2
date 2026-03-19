@@ -1,6 +1,7 @@
 import joblib
 import pandas as pd
 
+from activity_suggestion import get_activity_suggestions
 # -------- MOOD TAGS --------
 def mood_label(score):
 
@@ -56,6 +57,9 @@ def predict_day():
     # latest day
     latest = df.tail(1)
 
+    # extract row for suggestions
+    row = latest.iloc[0]
+
     # remove non-numeric columns
     X = latest.drop(columns=[
         "date",
@@ -70,8 +74,8 @@ def predict_day():
     mood = mood_model.predict(X)[0]
     prod = prod_model.predict(X)[0]
 
-    # -------- PRINT (same as your original) --------
-    print("\nPrediction for latest day\n")
+    print("\n" + "="*40)
+    print("\n===== DAILY HEALTH INSIGHT =====\n")
 
     print("Mood Score:", round(mood,2))
     print("Mood Meaning:", mood_label(mood))
@@ -79,10 +83,23 @@ def predict_day():
     print("Productivity Score:", round(prod,2))
     print("Productivity Meaning:", prod_label(prod))
 
-    # 🔥 IMPORTANT: return values for evaluation
+
+    suggestions = get_activity_suggestions(row, mood, prod)
+
+    print("\nKey Metrics:")
+    print(f"Sleep: {round(row['sleep_hours'],1)} hrs | "
+      f"Steps: {int(row['total_steps'])} | "
+      f"Stress: {round(row['stress_index'],3)}")
+
+    print("\n--- Activity Suggestions ---")
+
+    if not suggestions:
+        print("- Your metrics look balanced. Maintain current routine.")
+    else:
+        for s in suggestions[:3]:
+            print("-", s)
+
     return mood, prod
 
-
-# -------- RUN DIRECTLY --------
 if __name__ == "__main__":
     predict_day()

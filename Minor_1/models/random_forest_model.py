@@ -5,7 +5,7 @@ from train_model import (
     feature_names
 )
 
-from sklearn.model_selection import cross_val_score, RepeatedKFold
+from sklearn.model_selection import cross_val_score, TimeSeriesSplit
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
@@ -14,6 +14,10 @@ from datetime import datetime
 import joblib
 import os
 import numpy as np
+
+
+# ✅ BASE DIR FIX
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # ---------------- MOOD MODEL ----------------
@@ -70,14 +74,16 @@ print("MAE:", mae_prod)
 
 # ---------------- CROSS VALIDATION ----------------
 
-cv = RepeatedKFold(
-    n_splits=3,
-    n_repeats=10,
-    random_state=42
-)
+cv = TimeSeriesSplit(n_splits=5)
 
 mood_scores = cross_val_score(
-    mood_model,
+    RandomForestRegressor(
+        n_estimators=150,
+        max_depth=4,
+        min_samples_split=6,
+        min_samples_leaf=2,
+        random_state=42
+    ),
     X_train,
     y_train_mood,
     cv=cv,
@@ -85,7 +91,13 @@ mood_scores = cross_val_score(
 )
 
 prod_scores = cross_val_score(
-    prod_model,
+    RandomForestRegressor(
+        n_estimators=150,
+        max_depth=4,
+        min_samples_split=6,
+        min_samples_leaf=2,
+        random_state=42
+    ),
     X_train,
     y_train_prod,
     cv=cv,
@@ -127,20 +139,22 @@ for name, score in sorted(
 
 # ---------------- SAVE MODELS ----------------
 
-os.makedirs("saved_models", exist_ok=True)
+model_dir = os.path.join(BASE_DIR, "saved_models")
+os.makedirs(model_dir, exist_ok=True)
 
-joblib.dump(mood_model, "saved_models/random_forest_mood.pkl")
-joblib.dump(prod_model, "saved_models/random_forest_productivity.pkl")
+joblib.dump(mood_model, os.path.join(model_dir, "random_forest_mood.pkl"))
+joblib.dump(prod_model, os.path.join(model_dir, "random_forest_productivity.pkl"))
 
 print("\nModels saved successfully")
 
 
 # ---------------- SAVE RESULTS ----------------
 
-os.makedirs("results", exist_ok=True)
+results_dir = os.path.join(BASE_DIR, "results")
+os.makedirs(results_dir, exist_ok=True)
 
-json_file = "results/model_results.json"
-txt_file = "results/model_results.txt"
+json_file = os.path.join(results_dir, "model_results.json")
+txt_file = os.path.join(results_dir, "model_results.txt")
 
 
 results_data = {

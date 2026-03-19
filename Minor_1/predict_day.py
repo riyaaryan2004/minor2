@@ -48,8 +48,8 @@ def prod_label(score):
 def predict_day():
 
     # load models
-    mood_model = joblib.load("saved_models/catboost_mood.pkl")
-    prod_model = joblib.load("saved_models/random_forest_productivity.pkl")
+    mood_model = joblib.load("saved_models/lightgbm_mood.pkl")
+    prod_model = joblib.load("saved_models/lightgbm_productivity.pkl")
 
     # read CSV
     df = pd.read_csv("data/daily_data.csv")
@@ -60,36 +60,56 @@ def predict_day():
     # extract row for suggestions
     row = latest.iloc[0]
 
-    # remove non-numeric columns
-    X = latest.drop(columns=[
-        "date",
-        "sleep_start_time",
-        "wake_time",
-        "sleep_midpoint",
-        "mood_score",
-        "productivity_score"
-    ], errors="ignore")
+    # ONLY use same features as training
+    selected_features = [
+        "hr_std_day",
+        "day_of_week",
+        "total_steps",
+        "avg_hr_day",
+        "activity_load",
+        "stress_index"
+    ]
+
+    X = latest[selected_features]
 
     # -------- PREDICTION --------
     mood = mood_model.predict(X)[0]
     prod = prod_model.predict(X)[0]
+    
+    # productivity strongly depends on activity + stress
+    if row['total_steps'] < 4000:
+        prod -= 0.3
+
+    if row['stress_index'] > 0.15:
+        prod -= 0.2
+
+    # slight mood adjustment
+    if row['stress_index'] > 0.17:
+        mood -= 0.3
+
+
+    # keep values in valid range
+    mood = max(1, min(10, mood))
+    prod = max(1, min(10, prod))
+    
+    mood = round(mood, 2)
+    prod = round(prod, 2)
 
     print("\n" + "="*40)
     print("\n===== DAILY HEALTH INSIGHT =====\n")
 
-    print("Mood Score:", round(mood,2))
+    print("Mood Score:", mood)
     print("Mood Meaning:", mood_label(mood))
 
-    print("Productivity Score:", round(prod,2))
+    print("Productivity Score:", prod)
     print("Productivity Meaning:", prod_label(prod))
-
 
     suggestions = get_activity_suggestions(row, mood, prod)
 
     print("\nKey Metrics:")
     print(f"Sleep: {round(row['sleep_hours'],1)} hrs | "
-      f"Steps: {int(row['total_steps'])} | "
-      f"Stress: {round(row['stress_index'],3)}")
+        f"Steps: {int(row['total_steps'])} | "
+        f"Stress: {round(row['stress_index'],3)}")
 
     print("\n--- Activity Suggestions ---")
 

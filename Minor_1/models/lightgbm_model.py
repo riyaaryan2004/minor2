@@ -17,6 +17,10 @@ import os
 import numpy as np
 
 
+# ✅ BASE DIR FIX
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
 # ---------------- MOOD MODEL ----------------
 
 mood_model = LGBMRegressor(
@@ -128,20 +132,22 @@ for name, score in sorted(
 
 # ---------------- SAVE MODELS ----------------
 
-os.makedirs("saved_models", exist_ok=True)
+model_dir = os.path.join(BASE_DIR, "saved_models")
+os.makedirs(model_dir, exist_ok=True)
 
-joblib.dump(mood_model, "saved_models/lightgbm_mood.pkl")
-joblib.dump(prod_model, "saved_models/lightgbm_productivity.pkl")
+joblib.dump(mood_model, os.path.join(model_dir, "lightgbm_mood.pkl"))
+joblib.dump(prod_model, os.path.join(model_dir, "lightgbm_productivity.pkl"))
 
 print("\nModels saved successfully")
 
 
 # ---------------- SAVE RESULTS ----------------
 
-os.makedirs("results", exist_ok=True)
+results_dir = os.path.join(BASE_DIR, "results")
+os.makedirs(results_dir, exist_ok=True)
 
-json_file = "results/model_results.json"
-txt_file = "results/model_results.txt"
+json_file = os.path.join(results_dir, "model_results.json")
+txt_file = os.path.join(results_dir, "model_results.txt")
 
 
 results_data = {

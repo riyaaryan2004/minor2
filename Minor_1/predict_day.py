@@ -1,7 +1,10 @@
 import joblib
 import pandas as pd
+import numpy as np 
 
 from activity_suggestion import get_activity_suggestions
+
+
 # -------- MOOD TAGS --------
 def mood_label(score):
 
@@ -11,9 +14,9 @@ def mood_label(score):
         1:"Extremely bad mood",
         2:"Very low mood",
         3:"Low mood",
-        4:"Slightly low",
+        4:"Mildly negative",
         5:"Neutral",
-        6:"Okay / decent",
+        6:"Slightly positive",
         7:"Good",
         8:"Very good",
         9:"Great mood",
@@ -29,16 +32,16 @@ def prod_label(score):
     score = round(score)
 
     mapping = {
-        1:"No work done",
-        2:"Very low productivity",
-        3:"Low productivity",
-        4:"Slightly low",
-        5:"Average",
-        6:"Decent productivity",
-        7:"Good productivity",
-        8:"Very productive",
-        9:"Highly productive",
-        10:"Extremely productive"
+        1: "Extremely low productivity",
+        2: "Very low productivity",
+        3: "Low productivity",
+        4: "Below average",
+        5: "Average",
+        6: "Above average",
+        7: "Good productivity",
+        8: "Very productive",
+        9: "Highly productive",
+        10: "Extremely productive"
     }
 
     return mapping.get(score,"Unknown")
@@ -55,19 +58,29 @@ def predict_day():
     df = pd.read_csv("data/daily_data.csv")
 
     # latest day
-    latest = df.tail(1)
+    latest = df.tail(1).copy()   # ✅ safe copy
 
     # extract row for suggestions
     row = latest.iloc[0]
 
+    # ---------------- FEATURE ENGINEERING (IMPORTANT FIX) ----------------
+    latest["sleep_efficiency"] = latest["total_sleep"] / latest["sleep_hours"].replace(0, 1)
+    latest["hr_stress_ratio"] = latest["avg_hr_day"] / (latest["resting_hr"] + 1)
+
+    # same log transform as training
+    latest["stress_index"] = np.log1p(latest["stress_index"])
+
+    # ✅ create transformed stress for rules (FIX)
+    row_stress = np.log1p(row["stress_index"])
+    # --------------------------------------------------------------------
+
     # ONLY use same features as training
     selected_features = [
-        "hr_std_day",
-        "day_of_week",
-        "total_steps",
-        "avg_hr_day",
+        "sleep_efficiency",
+        "stress_index",
         "activity_load",
-        "stress_index"
+        "hr_stress_ratio",
+        "sleep_deficit"
     ]
 
     X = latest[selected_features]
@@ -76,16 +89,39 @@ def predict_day():
     mood = mood_model.predict(X)[0]
     prod = prod_model.predict(X)[0]
     
-    # productivity strongly depends on activity + stress
-    if row['total_steps'] < 4000:
-        prod -= 0.3
+   # ---------------- RULE-BASED ADJUSTMENT (IMPROVED) ----------------
 
-    if row['stress_index'] > 0.15:
-        prod -= 0.2
+    # Mood adjustments
+    if row['sleep_hours'] < 4:
+        mood -= 1.0
 
-    # slight mood adjustment
-    if row['stress_index'] > 0.17:
-        mood -= 0.3
+    elif row['sleep_hours'] < 6:
+        mood -= 0.5
+
+    if row_stress > np.log1p(0.18):
+        mood -= 0.8
+
+    elif row_stress > np.log1p(0.15):
+        mood -= 0.4
+
+    if row['sleep_hours'] > 7 and row_stress < np.log1p(0.14):
+        mood += 0.8
+
+
+    # Productivity adjustments
+    if row['total_steps'] < 3000:
+        prod -= 0.8
+
+    elif row['total_steps'] < 5000:
+        prod -= 0.4
+
+    if row['total_steps'] > 8000:
+        prod += 0.6
+
+    if row_stress > np.log1p(0.18):
+        prod -= 0.5
+
+    # ---------------------------------------------------------------
 
 
     # keep values in valid range
@@ -120,6 +156,7 @@ def predict_day():
             print("-", s)
 
     return mood, prod
+
 
 if __name__ == "__main__":
     predict_day()

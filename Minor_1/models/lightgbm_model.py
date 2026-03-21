@@ -2,7 +2,8 @@ from train_model import (
     X_train, X_test,
     y_train_mood, y_test_mood,
     y_train_prod, y_test_prod,
-    feature_names
+    feature_names,
+    w_train   
 )
 
 from sklearn.model_selection import cross_val_score, RepeatedKFold
@@ -17,7 +18,7 @@ import os
 import numpy as np
 
 
-# ✅ BASE DIR FIX
+# BASE DIR FIX
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -26,15 +27,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 mood_model = LGBMRegressor(
     n_estimators=200,
     max_depth=3,
-    min_child_samples=1,
+    min_child_samples=3,
     learning_rate=0.05,
     random_state=42
 )
 
-mood_model.fit(X_train, y_train_mood)
+mood_model.fit(X_train, y_train_mood, sample_weight=w_train)
 
 pred_mood = mood_model.predict(X_test)
-
 
 # Mood metrics
 r2_mood = r2_score(y_test_mood, pred_mood)
@@ -50,14 +50,16 @@ print("MAE:", mae_mood)
 # ---------------- PRODUCTIVITY MODEL ----------------
 
 prod_model = LGBMRegressor(
-    n_estimators=200,
-    max_depth=3,
-    min_child_samples=1,
-    learning_rate=0.05,
-    random_state=42
-)
+        n_estimators=80,
+        max_depth=3,
+        min_child_samples=5,
+        learning_rate=0.05,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        random_state=42
+    )
 
-prod_model.fit(X_train, y_train_prod)
+prod_model.fit(X_train, y_train_prod, sample_weight=w_train)
 
 pred_prod = prod_model.predict(X_test)
 
@@ -76,7 +78,7 @@ print("MAE:", mae_prod)
 # ---------------- CROSS VALIDATION ----------------
 
 cv = RepeatedKFold(
-    n_splits=3,
+    n_splits=5,
     n_repeats=10,
     random_state=42
 )
@@ -99,10 +101,11 @@ prod_scores = cross_val_score(
 
 print("\nMood CV Scores:", mood_scores)
 print("Mood CV Average:", mood_scores.mean())
+print("\nTrain R2 (Mood):", mood_model.score(X_train, y_train_mood))
 
 print("\nProductivity CV Scores:", prod_scores)
 print("Productivity CV Average:", prod_scores.mean())
-
+print("\nTrain R2 (Productivity):", prod_model.score(X_train, y_train_prod))
 
 # ---------------- FEATURE IMPORTANCE ----------------
 

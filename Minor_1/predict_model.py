@@ -1,10 +1,11 @@
 import joblib
 import pandas as pd
+import numpy as np   # ✅ added
 
 
 # load models
-mood_model = joblib.load("saved_models/catboost_mood.pkl")
-prod_model = joblib.load("saved_models/random_forest_productivity.pkl")
+mood_model = joblib.load("saved_models/lightgbm_mood.pkl")
+prod_model = joblib.load("saved_models/lightgbm_productivity.pkl")
 
 
 # test scenarios
@@ -167,9 +168,69 @@ for s in scenarios:
 
     df = pd.DataFrame([features])
 
-    mood_pred = mood_model.predict(df)[0]
-    prod_pred = prod_model.predict(df)[0]
+    # -------- FEATURE ENGINEERING (IMPORTANT FIX) --------
+    df["sleep_efficiency"] = df["total_sleep"] / df["sleep_hours"].replace(0, 1)
+    df["hr_stress_ratio"] = df["avg_hr_day"] / (df["resting_hr"] + 1)
 
+    # same transformation as training
+    df["stress_index"] = np.log1p(df["stress_index"])
+    # ----------------------------------------------------
+
+    # use SAME features as training
+    selected_features = [
+        "sleep_efficiency",
+        "stress_index",
+        "activity_load",
+        "hr_stress_ratio",
+        "sleep_deficit"
+    ]
+
+    X = df[selected_features]
+
+    mood_pred = mood_model.predict(X)[0]
+    prod_pred = prod_model.predict(X)[0]
+
+    # -------- RULE-BASED ADJUSTMENT (SAME AS MAIN) --------
+
+    row = df.iloc[0]
+
+    # transformed stress (same as model)
+    row_stress = np.log1p(row["stress_index"])
+
+    # Mood adjustments
+    if row['sleep_hours'] < 4:
+        mood_pred -= 1.0
+
+    elif row['sleep_hours'] < 6:
+        mood_pred -= 0.5
+
+    if row_stress > np.log1p(0.18):
+        mood_pred -= 0.8
+
+    elif row_stress > np.log1p(0.15):
+        mood_pred -= 0.4
+
+    if row['sleep_hours'] > 7 and row_stress < np.log1p(0.14):
+        mood_pred += 0.8
+
+
+    # Productivity adjustments
+    if row['total_steps'] < 3000:
+        prod_pred -= 0.8
+
+    elif row['total_steps'] < 5000:
+        prod_pred -= 0.4
+
+    if row['total_steps'] > 8000:
+        prod_pred += 0.6
+
+    if row_stress > np.log1p(0.18):
+        prod_pred -= 0.5
+
+
+    # keep in range
+    mood_pred = max(1, min(10, mood_pred))
+    prod_pred = max(1, min(10, prod_pred))
 
     print("Scenario:", name)
 

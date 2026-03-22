@@ -14,9 +14,9 @@ def mood_label(score):
         1:"Extremely bad mood",
         2:"Very low mood",
         3:"Low mood",
-        4:"Mildly negative",
+        4:"Slightly low",
         5:"Neutral",
-        6:"Slightly positive",
+        6:"Okay / decent",
         7:"Good",
         8:"Very good",
         9:"Great mood",
@@ -71,7 +71,10 @@ def predict_day():
     latest["stress_index"] = np.log1p(latest["stress_index"])
 
     # ✅ create transformed stress for rules (FIX)
-    row_stress = np.log1p(row["stress_index"])
+    row_stress = latest["stress_index"].iloc[0]
+    
+    latest["steps_scaled"] = latest["total_steps"] / 10000
+    latest["stress_sleep_interaction"] = latest["stress_index"] * latest["sleep_deficit"]
     # --------------------------------------------------------------------
 
     # ONLY use same features as training
@@ -80,7 +83,9 @@ def predict_day():
         "stress_index",
         "activity_load",
         "hr_stress_ratio",
-        "sleep_deficit"
+        "sleep_deficit",
+        "steps_scaled",
+        "stress_sleep_interaction"
     ]
 
     X = latest[selected_features]
@@ -108,19 +113,37 @@ def predict_day():
         mood += 0.8
 
 
-    # Productivity adjustments
+    # ---------------- PRODUCTIVITY ADJUSTMENT (CLEAN VERSION) ----------------
+
+    # --- Sleep (PRIMARY FACTOR) ---
+    if row['sleep_hours'] < 5:
+        prod -= 1.0
+    elif row['sleep_hours'] < 6:
+        prod -= 0.6
+
+    # --- Activity (SECONDARY) ---
     if row['total_steps'] < 3000:
         prod -= 0.8
-
     elif row['total_steps'] < 5000:
         prod -= 0.4
+    elif row['total_steps'] > 8000:
+        prod += 0.5
 
-    if row['total_steps'] > 8000:
-        prod += 0.6
-
+    # --- Stress (MODIFIER) ---
     if row_stress > np.log1p(0.18):
         prod -= 0.5
+    elif row_stress > np.log1p(0.15):
+        prod -= 0.3
 
+    # --- COMBINED EFFECT (IMPORTANT BUT CONTROLLED) ---
+    if row['sleep_hours'] < 6 and row_stress > np.log1p(0.18):
+        prod -= 0.6
+    
+    # --- MOOD → PRODUCTIVITY LINK ---
+    if mood <= 4:
+        prod -= 0.4
+    elif mood >= 7:
+        prod += 0.3
     # ---------------------------------------------------------------
 
 

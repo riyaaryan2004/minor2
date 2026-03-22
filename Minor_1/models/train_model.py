@@ -40,6 +40,8 @@ df = df.drop(columns=[
 df = df.dropna()
 print("Clean Shape:", df.shape)
 
+df["steps_scaled"] = df["total_steps"] / 10000
+
 # Features
 selected_features = [
     "sleep_efficiency",
@@ -47,6 +49,8 @@ selected_features = [
     "activity_load",
     "hr_stress_ratio",
     "sleep_deficit",
+    "steps_scaled",                 # ✅ ADD THIS
+    "stress_sleep_interaction"      # ✅ ALSO ADD THIS (you created it!)
 ]
 
 # Safety check

@@ -58,7 +58,7 @@ def predict_day():
     df = pd.read_csv("data/daily_data.csv")
 
     # latest day
-    latest = df.tail(1).copy()   # ✅ safe copy
+    latest = df.tail(1).copy() 
 
     # extract row for suggestions
     row = latest.iloc[0]
@@ -70,7 +70,7 @@ def predict_day():
     # same log transform as training
     latest["stress_index"] = np.log1p(latest["stress_index"])
 
-    # ✅ create transformed stress for rules (FIX)
+    # create transformed stress for rules (FIX)
     row_stress = latest["stress_index"].iloc[0]
     
     latest["steps_scaled"] = latest["total_steps"] / 10000

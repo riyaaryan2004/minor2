@@ -1,178 +1,194 @@
 import pandas as pd
-import os
-# print(os.listdir())
 
-daily1 = pd.read_csv("data/dailyActivity_merged.csv")
-daily2 = pd.read_csv("data/dailyActivity_merged (2).csv")
+# =========================
+# 1. LOAD DATA
+# =========================
 
-sleep = pd.read_csv("data/sleepDay_merged.csv")
+def load_concat(f1, f2):
+    return pd.concat([pd.read_csv(f1), pd.read_csv(f2)], ignore_index=True)
 
-hsteps1 = pd.read_csv("data/hourlySteps_merged.csv")
-hsteps2 = pd.read_csv("data/hourlySteps_merged (2).csv")
+daily = load_concat("data/dailyActivity_merged.csv",
+                    "data/dailyActivity_merged (2).csv")
 
-hcal1 = pd.read_csv("data/hourlyCalories_merged.csv")
-hcal2 = pd.read_csv("data/hourlyCalories_merged (2).csv")
+hsteps = load_concat("data/hourlySteps_merged.csv",
+                     "data/hourlySteps_merged (2).csv")
 
-hint1 = pd.read_csv("data/hourlyIntensities_merged.csv")
-hint2 = pd.read_csv("data/hourlyIntensities_merged (2).csv")
+hint = load_concat("data/hourlyIntensities_merged.csv",
+                   "data/hourlyIntensities_merged (2).csv")
 
-hr1 = pd.read_csv("data/heartrate_seconds_merged.csv")
-hr2 = pd.read_csv("data/heartrate_seconds_merged (2).csv")
+hr = load_concat("data/heartrate_seconds_merged.csv",
+                 "data/heartrate_seconds_merged (2).csv")
 
-daily = pd.concat([daily1, daily2], ignore_index=True)
-hourly_steps = pd.concat([hsteps1, hsteps2], ignore_index=True)
-hourly_cal = pd.concat([hcal1, hcal2], ignore_index=True)
-hourly_int = pd.concat([hint1, hint2], ignore_index=True)
-hr = pd.concat([hr1, hr2], ignore_index=True)
+msleep = load_concat("data/minuteSleep_merged.csv",
+                     "data/minuteSleep_merged (2).csv")
 
-# clean data columns
-daily["ActivityDate"] = pd.to_datetime(daily["ActivityDate"])
+# =========================
+# 2. DATE STANDARDIZATION
+# =========================
 
-sleep["SleepDay"] = pd.to_datetime(sleep["SleepDay"])
-sleep["date"] = sleep["SleepDay"].dt.date
+daily["date"] = pd.to_datetime(daily["ActivityDate"]).dt.date
 
-hourly_steps["ActivityHour"] = pd.to_datetime(hourly_steps["ActivityHour"])
-hourly_steps["date"] = hourly_steps["ActivityHour"].dt.date
-
-hourly_cal["ActivityHour"] = pd.to_datetime(hourly_cal["ActivityHour"])
-hourly_cal["date"] = hourly_cal["ActivityHour"].dt.date
-
-hourly_int["ActivityHour"] = pd.to_datetime(hourly_int["ActivityHour"])
-hourly_int["date"] = hourly_int["ActivityHour"].dt.date
+hsteps["date"] = pd.to_datetime(hsteps["ActivityHour"]).dt.date
+hint["date"] = pd.to_datetime(hint["ActivityHour"]).dt.date
 
 hr["Time"] = pd.to_datetime(hr["Time"], errors="coerce")
+hr = hr.dropna(subset=["Time"])
 hr["date"] = hr["Time"].dt.date
 
-# drop rows where datetime failed
-hr = hr.dropna(subset=["date"])
+msleep["dateTime"] = pd.to_datetime(msleep["date"])
 
-# aggregate houly -> daily
-# Hourly steps/calories/intensity are combined to create one daily value per user.
-hourly_steps_daily = (
-hourly_steps.groupby(["Id", "date"])["StepTotal"]
-.sum()
-.reset_index()
+# =========================
+# 3. DAILY FEATURES
+# =========================
+
+daily_main = daily[[
+    "Id","date","TotalSteps",
+    "VeryActiveMinutes","FairlyActiveMinutes",
+    "LightlyActiveMinutes"
+]]
+
+steps_daily = hsteps.groupby(["Id","date"])["StepTotal"].sum().reset_index()
+intensity_daily = hint.groupby(["Id","date"])["TotalIntensity"].sum().reset_index()
+
+# =========================
+# 4. HEART RATE
+# =========================
+
+hr_daily = hr.groupby(["Id","date"])["Value"].agg(
+    avg_hr_day="mean",
+    hr_std_day="std",
+    min_hr="min",
+    max_hr="max"
+).reset_index()
+
+hr_daily["resting_hr"] = hr_daily["min_hr"]
+hr_daily["hr_deviation"] = hr_daily["avg_hr_day"] - hr_daily["resting_hr"]
+
+# =========================
+# 5. SLEEP (CORRECT LOGIC)
+# =========================
+
+msleep = msleep.sort_values(["Id","dateTime"])
+
+msleep["prev"] = msleep.groupby("Id")["value"].shift()
+msleep["new_session"] = (msleep["value"] == 1) & (msleep["prev"] != 1)
+msleep["session_id"] = msleep.groupby("Id")["new_session"].cumsum()
+
+sleep_sessions = msleep[msleep["value"] == 1]
+
+sessions = sleep_sessions.groupby(["Id","session_id"]).agg(
+    sleep_start_time=("dateTime","min"),
+    wake_time=("dateTime","max")
+).reset_index()
+
+# duration per session
+sessions["duration"] = (
+    sessions["wake_time"] - sessions["sleep_start_time"]
+).dt.total_seconds()
+
+sessions["date"] = sessions["sleep_start_time"].dt.date
+
+# ✅ pick longest session per day
+sleep_timing = sessions.loc[
+    sessions.groupby(["Id","date"])["duration"].idxmax()
+].reset_index(drop=True)
+
+# duration features
+sleep_timing["total_sleep"] = sleep_timing["duration"] / 60
+sleep_timing["sleep_hours"] = sleep_timing["total_sleep"] / 60
+
+# midpoint
+sleep_timing["sleep_midpoint"] = (
+    sleep_timing["sleep_start_time"] +
+    (sleep_timing["wake_time"] - sleep_timing["sleep_start_time"]) / 2
 )
 
-hourly_cal_daily = (
-hourly_cal.groupby(["Id", "date"])["Calories"]
-.sum()
-.reset_index()
+sleep_timing["sleep_start_hour"] = sleep_timing["sleep_start_time"].dt.hour
+sleep_timing["wake_hour"] = sleep_timing["wake_time"].dt.hour
+
+# =========================
+# 6. MERGE
+# =========================
+
+df = daily_main.copy()
+
+df = df.merge(steps_daily, on=["Id","date"], how="left")
+df = df.merge(intensity_daily, on=["Id","date"], how="left")
+df = df.merge(hr_daily, on=["Id","date"], how="left")
+df = df.merge(sleep_timing, on=["Id","date"], how="left")
+
+# remove duplicates safely
+df = df.sort_values(["Id","date","total_sleep"], ascending=[True,True,False])
+df = df.drop_duplicates(["Id","date"])
+
+# =========================
+# 7. FEATURE ENGINEERING
+# =========================
+
+df["day_of_week"] = pd.to_datetime(df["date"]).dt.dayofweek
+df["is_weekend"] = df["day_of_week"].isin([5,6]).astype(int)
+
+df["activity_load"] = (
+    df["VeryActiveMinutes"]*3 +
+    df["FairlyActiveMinutes"]*2 +
+    df["LightlyActiveMinutes"]
 )
 
-hourly_int_daily = (
-hourly_int.groupby(["Id","date"])["TotalIntensity"]
-.sum()
-.reset_index()
-)
+df["sleep_deficit"] = 8 - df["sleep_hours"]
 
-# Heart rate -> daily features
-# Second-level heart rate data is summarized into daily stats (avg, max, min, variability).
-hr_daily = (
-hr.groupby(["Id", "date"])["Value"]
-.agg(
-avg_hr="mean",
-max_hr="max",
-min_hr="min",
-hr_std="std"
-)
-.reset_index()
-)
+df["resting_hr"] = df["resting_hr"].fillna(df["avg_hr_day"] - df["hr_std_day"])
+df["stress_index"] = df["hr_std_day"] / (df["resting_hr"] + 1)
 
-hr_daily["hr_range"] = hr_daily["max_hr"] - hr_daily["min_hr"]
+# =========================
+# 8. FORMAT OUTPUT
+# =========================
 
-# Sleep features
-# Sleep data is used to compute daily sleep hours and sleep efficiency.
-sleep_daily = (
-sleep.groupby(["Id","date"])
-[["TotalMinutesAsleep","TotalTimeInBed"]]
-.sum()
-.reset_index()
-)
+final_df = pd.DataFrame()
 
-sleep_daily["sleep_hours"] = sleep_daily["TotalMinutesAsleep"] / 60
+final_df["date"] = pd.to_datetime(df["date"])
 
-sleep_daily["sleep_efficiency"] = (
-sleep_daily["TotalMinutesAsleep"] /
-sleep_daily["TotalTimeInBed"]
-)
+final_df["day_of_week"] = df["day_of_week"]
+final_df["resting_hr"] = df["resting_hr"].round(0)
 
-# Prepare daily dataset
-# Important columns from the daily activity file are selected as main lifestyle features.
-daily["date"] = daily["ActivityDate"].dt.date
+final_df["total_steps"] = df["TotalSteps"]
 
-daily_main = daily[
-[
-"Id",
-"date",
-"TotalSteps",
-"Calories",
-"VeryActiveMinutes",
-"FairlyActiveMinutes",
-"LightlyActiveMinutes",
-"SedentaryMinutes",
-]
-]
+final_df["total_sleep"] = df["total_sleep"].round(0)
+final_df["sleep_hours"] = df["sleep_hours"].round(2)
 
-# meage
-df = daily_main.merge(hourly_cal_daily, on=["Id", "date"], how="left")
-df = df.merge(hourly_int_daily, on=["Id", "date"], how="left")
-df = df.merge(hr_daily, on=["Id", "date"], how="left")
-df = df.merge(sleep_daily, on=["Id", "date"], how="left")
+final_df["deep_ratio"] = 0.25
+final_df["rem_ratio"] = 0.19
 
-df = df.drop_duplicates(subset=["Id","date"])
+final_df["sleep_deficit"] = (df["sleep_deficit"] * 60).round(0)
 
-# missing values
-# fill sleep
-df["sleep_hours"] = df["sleep_hours"].fillna(df["sleep_hours"].median())
-df["sleep_efficiency"] = df["sleep_efficiency"].fillna(df["sleep_efficiency"].median())
+final_df["sleep_start_time"] = df["sleep_start_time"]
+final_df["wake_time"] = df["wake_time"]
 
-# fill heart rate
-df["hr_std"] = df["hr_std"].fillna(df["hr_std"].median())
-df["avg_hr"] = df["avg_hr"].fillna(df["avg_hr"].median())
-df["max_hr"] = df["max_hr"].fillna(df["max_hr"].median())
-df["min_hr"] = df["min_hr"].fillna(df["min_hr"].median())
-df["hr_range"] = df["hr_range"].fillna(df["hr_range"].median())
+# midpoint formatted HH:MM:SS
+final_df["sleep_midpoint"] = df["sleep_midpoint"].dt.strftime("%H:%M:%S")
 
-# fill activity
-df["TotalIntensity"] = df["TotalIntensity"].fillna(df["TotalIntensity"].median())
-print("Unique HR values:", df["avg_hr"].nunique())
-print("Unique sleep values:", df["sleep_hours"].nunique())
+final_df["sleep_start_hour"] = df["sleep_start_hour"]
+final_df["wake_hour"] = df["wake_hour"]
 
-df = df[df["TotalSteps"] > 0]
+final_df["avg_hr_day"] = df["avg_hr_day"].round(2)
+final_df["hr_std_day"] = df["hr_std_day"].round(2)
+final_df["hr_deviation"] = df["hr_deviation"].round(2)
 
-# mood score
-df["mood_score"] = (
-0.35 * (df["sleep_hours"]/8) +
-0.25 * (df["VeryActiveMinutes"]/60) +
-0.20 * (1 - df["SedentaryMinutes"]/1440) +
-0.10 * (df["sleep_efficiency"]) +
-0.10 * (1/(1+df["hr_std"]))
-)
+final_df["stress_index"] = df["stress_index"].round(4)
 
-df["mood_score"] = (df["mood_score"] * 10).clip(0, 10)
+final_df["activity_load"] = (df["activity_load"]/1000).round(2)
 
-# productivity score
-df["productivity_score"] = (
-0.5 * (df["VeryActiveMinutes"] + df["FairlyActiveMinutes"]) / 90
-+ 0.3 * (df["sleep_hours"] / 8)
-+ 0.2 * (1 - df["SedentaryMinutes"] / 1440)
-)
+final_df["is_weekend"] = df["is_weekend"]
 
-df["productivity_score"] = (
-df["productivity_score"] * 10
-).clip(0, 10)
+final_df["mood_score"] = pd.NA
+final_df["productivity_score"] = pd.NA
 
-# cleaning duplicate features
-df = df.drop(columns=["StepTotal"], errors="ignore")
-df = df.drop(columns=["Calories_y"])
-df = df.rename(columns={"Calories_x": "Calories"})
+# =========================
+# 9. SAVE
+# =========================
 
-print(df.head())
-print(df.describe())
+final_df = final_df.sort_values("date")
 
-df.to_csv("data/fitbit_final_dataset.csv", index=False)
+final_df.to_csv("data/final_dataset_clean.csv", index=False)
 
-print("Final dataset created")
-print("Dataset shape:", df.shape)
-print(df.head())
+print("✅ FINAL DATASET READY")
+print(final_df.head())

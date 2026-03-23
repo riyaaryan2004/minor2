@@ -49,14 +49,14 @@ selected_features = [
     "activity_load",
     "hr_stress_ratio",
     "sleep_deficit",
-    "steps_scaled",                 # ✅ ADD THIS
-    "stress_sleep_interaction"      # ✅ ALSO ADD THIS (you created it!)
+    "steps_scaled",                 
+    "stress_sleep_interaction"      
 ]
 
 # Safety check
 missing_cols = [col for col in selected_features if col not in df.columns]
 if missing_cols:
-    print("❌ Missing columns:", missing_cols)
+    print("Missing columns:", missing_cols)
     raise ValueError("Missing columns")
 
 X = df[selected_features]

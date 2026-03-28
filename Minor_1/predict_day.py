@@ -109,24 +109,24 @@ def predict_day():
     elif row_stress > np.log1p(0.15):
         mood -= 0.4
 
-    if row['sleep_hours'] > 7 and row_stress < np.log1p(0.14):
+    if row['sleep_hours'] > 7 and row_stress < np.log1p(0.15):
         mood += 0.8
 
 
     # ---------------- PRODUCTIVITY ADJUSTMENT (CLEAN VERSION) ----------------
 
     # --- Sleep (PRIMARY FACTOR) ---
-    if row['sleep_hours'] < 5:
+    if row['sleep_hours'] < 4:
         prod -= 1.0
-    elif row['sleep_hours'] < 6:
+    elif row['sleep_hours'] < 5:
         prod -= 0.6
 
     # --- Activity (SECONDARY) ---
     if row['total_steps'] < 3000:
         prod -= 0.8
-    elif row['total_steps'] < 5000:
+    elif row['total_steps'] < 4000:
         prod -= 0.4
-    elif row['total_steps'] > 8000:
+    elif row['total_steps'] > 5500:
         prod += 0.5
 
     # --- Stress (MODIFIER) ---

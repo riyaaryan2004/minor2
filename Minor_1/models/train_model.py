@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import numpy as np
+import joblib
 
 # Path handling
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,15 +19,24 @@ df = df.sort_values("date")
 # ✅ Source column
 df["source"] = df["date"].apply(lambda x: "real" if x >= "2026-03-01" else "synthetic")
 
-# Feature Engineering
+# ---------------- FEATURE ENGINEERING ----------------
+
 df["sleep_efficiency"] = df["total_sleep"] / df["sleep_hours"].replace(0, 1)
 df["hr_stress_ratio"] = df["avg_hr_day"] / (df["resting_hr"] + 1)
 
-# ✅ Log transform (ONLY stress)
+# SAVE RAW STRESS (important for consistency later)
+df["stress_index_raw"] = df["stress_index"]
+
+# Log transform
 df["stress_index"] = np.log1p(df["stress_index"])
 
-# ✅ Interaction feature
+# Interaction
 df["stress_sleep_interaction"] = df["stress_index"] * df["sleep_deficit"]
+
+# Steps scaling (keep simple)
+df["steps_scaled"] = df["total_steps"] / 10000
+
+# ----------------------------------------------------
 
 # Drop unnecessary columns
 df = df.drop(columns=[
@@ -40,8 +50,6 @@ df = df.drop(columns=[
 df = df.dropna()
 print("Clean Shape:", df.shape)
 
-df["steps_scaled"] = df["total_steps"] / 10000
-
 # Features
 selected_features = [
     "sleep_efficiency",
@@ -49,8 +57,8 @@ selected_features = [
     "activity_load",
     "hr_stress_ratio",
     "sleep_deficit",
-    "steps_scaled",                 
-    "stress_sleep_interaction"      
+    "steps_scaled",
+    "stress_sleep_interaction"
 ]
 
 # Safety check
@@ -60,32 +68,37 @@ if missing_cols:
     raise ValueError("Missing columns")
 
 X = df[selected_features]
+feature_names = selected_features
 
 # Targets
 y_mood = df["mood_score"].clip(1, 10)
 y_prod = df["productivity_score"].clip(1, 10)
 
-feature_names = X.columns
+print("\nFinal Features Used:", list(X.columns))
 
-print("\nFinal Features Used:", list(feature_names))
-
-# Correlation
+# ---------------- DEBUG (VERY USEFUL) ----------------
 print("\nCorrelation with Mood:")
 print(X.corrwith(y_mood).sort_values(ascending=False))
 
 print("\nFeature Correlation Matrix:")
 print(X.corr())
+# ---------------------------------------------------
 
-# Scaling
+# ---------------- SCALING (FIXED) ----------------
 from sklearn.preprocessing import StandardScaler
+
 scaler = StandardScaler()
-X = pd.DataFrame(scaler.fit_transform(X), columns=selected_features)
+X_scaled = pd.DataFrame(scaler.fit_transform(X), columns=selected_features)
+
+save_dir = os.path.join(BASE_DIR, "saved_models")
+
+joblib.dump(scaler, os.path.join(save_dir, "scaler.pkl"))
 
 # Time split
-split_index = int(len(X) * 0.8)
+split_index = int(len(X_scaled) * 0.8)
 
-X_train = X.iloc[:split_index]
-X_test = X.iloc[split_index:]
+X_train = X_scaled.iloc[:split_index]
+X_test = X_scaled.iloc[split_index:]
 
 y_train_mood = y_mood.iloc[:split_index]
 y_test_mood = y_mood.iloc[split_index:]
@@ -99,3 +112,21 @@ w_train = sample_weight.iloc[:split_index]
 
 print("\nTraining samples:", X_train.shape[0])
 print("Testing samples:", X_test.shape[0])
+
+# ---------------- MODEL TRAINING ----------------
+
+# ⚠️ Keep LightGBM if you want, but this is safer:
+from sklearn.linear_model import Ridge
+
+mood_model = Ridge()
+prod_model = Ridge()
+
+mood_model.fit(X_train, y_train_mood)
+prod_model.fit(X_train, y_train_prod)
+
+# ---------------- SAVE MODELS ----------------
+
+joblib.dump(mood_model, os.path.join(save_dir, "lightgbm_mood.pkl"))
+joblib.dump(prod_model, os.path.join(save_dir, "lightgbm_productivity.pkl"))
+
+print("\n✅ Models and scaler saved successfully!")

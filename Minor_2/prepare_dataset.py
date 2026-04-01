@@ -1,194 +1,313 @@
 import pandas as pd
+import numpy as np
 
-# =========================
-# 1. LOAD DATA
-# =========================
+# -------------------------------
+# Utility
+# -------------------------------
 
-def load_concat(f1, f2):
-    return pd.concat([pd.read_csv(f1), pd.read_csv(f2)], ignore_index=True)
+def load_concat(file1, file2):
+    df1 = pd.read_csv(file1)
+    df2 = pd.read_csv(file2)
+    return pd.concat([df1, df2], ignore_index=True)
 
-daily = load_concat("data/dailyActivity_merged.csv",
-                    "data/dailyActivity_merged (2).csv")
 
-hsteps = load_concat("data/hourlySteps_merged.csv",
-                     "data/hourlySteps_merged (2).csv")
+# -------------------------------
+# STEP 1: PROCESS STEPS (HOURLY → DAILY)
+# -------------------------------
 
-hint = load_concat("data/hourlyIntensities_merged.csv",
-                   "data/hourlyIntensities_merged (2).csv")
+def process_steps(hsteps):
+    hsteps['ActivityHour'] = pd.to_datetime(hsteps['ActivityHour'])
+    hsteps['date'] = hsteps['ActivityHour'].dt.date
 
-hr = load_concat("data/heartrate_seconds_merged.csv",
-                 "data/heartrate_seconds_merged (2).csv")
+    steps_daily = hsteps.groupby(['Id', 'date'])['StepTotal'].sum().reset_index()
+    steps_daily.rename(columns={'StepTotal': 'total_steps'}, inplace=True)
 
-msleep = load_concat("data/minuteSleep_merged.csv",
-                     "data/minuteSleep_merged (2).csv")
+    return steps_daily
 
-# =========================
-# 2. DATE STANDARDIZATION
-# =========================
 
-daily["date"] = pd.to_datetime(daily["ActivityDate"]).dt.date
+# -------------------------------
+# STEP 2: PROCESS INTENSITY (HOURLY → DAILY)
+# -------------------------------
 
-hsteps["date"] = pd.to_datetime(hsteps["ActivityHour"]).dt.date
-hint["date"] = pd.to_datetime(hint["ActivityHour"]).dt.date
+def process_intensity(hint):
+    hint['ActivityHour'] = pd.to_datetime(hint['ActivityHour'])
+    hint['date'] = hint['ActivityHour'].dt.date
 
-hr["Time"] = pd.to_datetime(hr["Time"], errors="coerce")
-hr = hr.dropna(subset=["Time"])
-hr["date"] = hr["Time"].dt.date
+    intensity_daily = hint.groupby(['Id', 'date'])['TotalIntensity'].sum().reset_index()
+    intensity_daily.rename(columns={'TotalIntensity': 'activity_load'}, inplace=True)
 
-msleep["dateTime"] = pd.to_datetime(msleep["date"])
+    return intensity_daily
 
-# =========================
-# 3. DAILY FEATURES
-# =========================
 
-daily_main = daily[[
-    "Id","date","TotalSteps",
-    "VeryActiveMinutes","FairlyActiveMinutes",
-    "LightlyActiveMinutes"
-]]
+# -------------------------------
+# STEP 3: PROCESS HEART RATE (SECONDS → DAILY)
+# -------------------------------
 
-steps_daily = hsteps.groupby(["Id","date"])["StepTotal"].sum().reset_index()
-intensity_daily = hint.groupby(["Id","date"])["TotalIntensity"].sum().reset_index()
+def process_hr(hr):
+    hr['Time'] = pd.to_datetime(hr['Time'])
+    hr['date'] = hr['Time'].dt.date
 
-# =========================
-# 4. HEART RATE
-# =========================
+    hr_daily = hr.groupby(['Id', 'date'])['Value'].agg(
+        avg_hr_day='mean',
+        hr_std_day='std'
+    ).reset_index()
 
-hr_daily = hr.groupby(["Id","date"])["Value"].agg(
-    avg_hr_day="mean",
-    hr_std_day="std",
-    min_hr="min",
-    max_hr="max"
-).reset_index()
+    return hr_daily
 
-hr_daily["resting_hr"] = hr_daily["min_hr"]
-hr_daily["hr_deviation"] = hr_daily["avg_hr_day"] - hr_daily["resting_hr"]
 
-# =========================
-# 5. SLEEP (CORRECT LOGIC)
-# =========================
+# -------------------------------
+# STEP 4: PROCESS SLEEP (MINUTE → DAILY)
+# -------------------------------
 
-msleep = msleep.sort_values(["Id","dateTime"])
+def process_sleep(msleep):
+    msleep['date'] = pd.to_datetime(msleep['date']).dt.date
 
-msleep["prev"] = msleep.groupby("Id")["value"].shift()
-msleep["new_session"] = (msleep["value"] == 1) & (msleep["prev"] != 1)
-msleep["session_id"] = msleep.groupby("Id")["new_session"].cumsum()
+    sleep_daily = msleep.groupby(['Id', 'date'])['value'].sum().reset_index()
 
-sleep_sessions = msleep[msleep["value"] == 1]
+    sleep_daily.rename(columns={'value': 'total_sleep'}, inplace=True)
+    sleep_daily['sleep_hours'] = sleep_daily['total_sleep'] / 60.0
 
-sessions = sleep_sessions.groupby(["Id","session_id"]).agg(
-    sleep_start_time=("dateTime","min"),
-    wake_time=("dateTime","max")
-).reset_index()
+    return sleep_daily
 
-# duration per session
-sessions["duration"] = (
-    sessions["wake_time"] - sessions["sleep_start_time"]
-).dt.total_seconds()
 
-sessions["date"] = sessions["sleep_start_time"].dt.date
+# -------------------------------
+# STEP 5: PROCESS DAILY ACTIVITY
+# -------------------------------
 
-# ✅ pick longest session per day
-sleep_timing = sessions.loc[
-    sessions.groupby(["Id","date"])["duration"].idxmax()
-].reset_index(drop=True)
+def process_daily(daily):
+    daily['ActivityDate'] = pd.to_datetime(daily['ActivityDate'])
+    daily['date'] = daily['ActivityDate'].dt.date
 
-# duration features
-sleep_timing["total_sleep"] = sleep_timing["duration"] / 60
-sleep_timing["sleep_hours"] = sleep_timing["total_sleep"] / 60
+    daily_out = daily[['Id', 'date', 'Calories']].copy()
 
-# midpoint
-sleep_timing["sleep_midpoint"] = (
-    sleep_timing["sleep_start_time"] +
-    (sleep_timing["wake_time"] - sleep_timing["sleep_start_time"]) / 2
-)
+    return daily_out
 
-sleep_timing["sleep_start_hour"] = sleep_timing["sleep_start_time"].dt.hour
-sleep_timing["wake_hour"] = sleep_timing["wake_time"].dt.hour
 
-# =========================
-# 6. MERGE
-# =========================
+# -------------------------------
+# STEP 6: FEATURE ENGINEERING
+# -------------------------------
 
-df = daily_main.copy()
+def feature_engineering(df):
 
-df = df.merge(steps_daily, on=["Id","date"], how="left")
-df = df.merge(intensity_daily, on=["Id","date"], how="left")
-df = df.merge(hr_daily, on=["Id","date"], how="left")
-df = df.merge(sleep_timing, on=["Id","date"], how="left")
+    df['date'] = pd.to_datetime(df['date'])
+    df = df.sort_values(['Id', 'date'])
 
-# remove duplicates safely
-df = df.sort_values(["Id","date","total_sleep"], ascending=[True,True,False])
-df = df.drop_duplicates(["Id","date"])
+    df['day_of_week'] = df['date'].dt.dayofweek
+    df['is_weekend'] = df['day_of_week'].isin([5, 6]).astype(int)
 
-# =========================
-# 7. FEATURE ENGINEERING
-# =========================
+    # HR deviation PER USER
+    df['hr_deviation'] = df.groupby('Id')['avg_hr_day'].transform(
+        lambda x: x - x.rolling(3).mean()
+    )
 
-df["day_of_week"] = pd.to_datetime(df["date"]).dt.dayofweek
-df["is_weekend"] = df["day_of_week"].isin([5,6]).astype(int)
+    # Stress index
+    df['stress_index'] = df['avg_hr_day'] / (df['hr_std_day'] + 1)
 
-df["activity_load"] = (
-    df["VeryActiveMinutes"]*3 +
-    df["FairlyActiveMinutes"]*2 +
-    df["LightlyActiveMinutes"]
-)
+    # Sleep deficit
+    df['sleep_deficit'] = 8 - df['sleep_hours']
 
-df["sleep_deficit"] = 8 - df["sleep_hours"]
+    return df
 
-df["resting_hr"] = df["resting_hr"].fillna(df["avg_hr_day"] - df["hr_std_day"])
-df["stress_index"] = df["hr_std_day"] / (df["resting_hr"] + 1)
 
-# =========================
-# 8. FORMAT OUTPUT
-# =========================
+# -------------------------------
+# UPDATED CLEANING (🔥 FIXED ALL ISSUES)
+# -------------------------------
 
-final_df = pd.DataFrame()
+def clean_data(df):
 
-final_df["date"] = pd.to_datetime(df["date"])
+    # -------------------
+    # REMOVE DUPLICATES (🔥 FIX)
+    # -------------------
+    df = df.drop_duplicates(subset=['Id', 'date'])
 
-final_df["day_of_week"] = df["day_of_week"]
-final_df["resting_hr"] = df["resting_hr"].round(0)
+    # -------------------
+    # STRONGER FILTERS (🔥 FIX)
+    # -------------------
+    df = df[(df['sleep_hours'].isna()) | ((df['sleep_hours'] >= 2) & (df['sleep_hours'] <= 12))]
+    df = df[(df['total_steps'].isna()) | (df['total_steps'] >= 500)]
 
-final_df["total_steps"] = df["TotalSteps"]
+    # -------------------
+    # DROP IMPORTANT MISSING
+    # -------------------
+    df = df.dropna(subset=['sleep_hours', 'total_steps'])
 
-final_df["total_sleep"] = df["total_sleep"].round(0)
-final_df["sleep_hours"] = df["sleep_hours"].round(2)
+    # -------------------
+    # HANDLE HR (better)
+    # -------------------
+    df['avg_hr_day'] = df.groupby('Id')['avg_hr_day'].transform(lambda x: x.fillna(x.mean()))
+    df['hr_std_day'] = df.groupby('Id')['hr_std_day'].transform(lambda x: x.fillna(x.mean()))
 
-final_df["deep_ratio"] = 0.25
-final_df["rem_ratio"] = 0.19
+    # If still NaN → fill global (last fallback)
+    df['avg_hr_day'] = df['avg_hr_day'].fillna(df['avg_hr_day'].mean())
+    df['hr_std_day'] = df['hr_std_day'].fillna(df['hr_std_day'].mean())
 
-final_df["sleep_deficit"] = (df["sleep_deficit"] * 60).round(0)
+    # -------------------
+    # NORMALIZATION (per user)
+    # -------------------
+    df['steps_norm'] = df.groupby('Id')['total_steps'].transform(
+        lambda x: (x - x.mean()) / (x.std() + 1e-6)
+    )
 
-final_df["sleep_start_time"] = df["sleep_start_time"]
-final_df["wake_time"] = df["wake_time"]
+    df['sleep_norm'] = df.groupby('Id')['sleep_hours'].transform(
+        lambda x: (x - x.mean()) / (x.std() + 1e-6)
+    )
 
-# midpoint formatted HH:MM:SS
-final_df["sleep_midpoint"] = df["sleep_midpoint"].dt.strftime("%H:%M:%S")
+    # -------------------
+    # 🔥 ADD LAG FEATURES (VERY IMPORTANT)
+    # -------------------
+    df = df.sort_values(['Id', 'date'])
 
-final_df["sleep_start_hour"] = df["sleep_start_hour"]
-final_df["wake_hour"] = df["wake_hour"]
+    df['steps_prev1'] = df.groupby('Id')['total_steps'].shift(1)
+    df['sleep_prev1'] = df.groupby('Id')['sleep_hours'].shift(1)
 
-final_df["avg_hr_day"] = df["avg_hr_day"].round(2)
-final_df["hr_std_day"] = df["hr_std_day"].round(2)
-final_df["hr_deviation"] = df["hr_deviation"].round(2)
+    df['steps_avg_3'] = df.groupby('Id')['total_steps'].transform(
+        lambda x: x.rolling(3).mean()
+    )
 
-final_df["stress_index"] = df["stress_index"].round(4)
+    df['sleep_avg_3'] = df.groupby('Id')['sleep_hours'].transform(
+        lambda x: x.rolling(3).mean()
+    )
 
-final_df["activity_load"] = (df["activity_load"]/1000).round(2)
+    # Drop rows where lag not available
+    df = df.dropna(subset=['steps_prev1', 'sleep_prev1'])
 
-final_df["is_weekend"] = df["is_weekend"]
+    # -------------------
+    # EXTRA FEATURES (FINAL)
+    # -------------------
+    
+    # 2. Sleep efficiency (FIXED VERSION)
+    df['sleep_efficiency'] = df['sleep_hours'] / 8
 
-final_df["mood_score"] = pd.NA
-final_df["productivity_score"] = pd.NA
+    # 3. Stress + Sleep interaction (GOOD FEATURE)
+    df['stress_sleep_interaction'] = df['stress_index'] * df['sleep_deficit']
 
-# =========================
-# 9. SAVE
-# =========================
+    # 4. Recovery score (VERY IMPORTANT)
+    df['recovery_score'] = df['sleep_hours'] / (df['activity_load'] + 1)
 
-final_df = final_df.sort_values("date")
+    # 5. Fatigue index (VERY USEFUL)
+    df['fatigue_index'] = df['sleep_deficit'] + (df['activity_load'] / 500)
 
-final_df.to_csv("data/final_dataset_clean.csv", index=False)
+    # 6. Activity trend (TEMPORAL BEHAVIOR)
+    df['activity_trend'] = df['total_steps'] - df['steps_prev1']
 
-print("✅ FINAL DATASET READY")
-print(final_df.head())
+    # 7. Sleep consistency (routine stability)
+    df['sleep_variation'] = df.groupby('Id')['sleep_hours'].transform(
+        lambda x: x.rolling(3).std()
+    )
+    
+    # -------------------
+    # FINAL SAFETY FIXES
+    # -------------------
+
+    # 1. Fix sleep_variation NaN
+    df['sleep_variation'] = df['sleep_variation'].fillna(0)
+
+    # 2. Safe stress index
+    df['stress_index'] = np.log1p(df['stress_index'].clip(lower=0))
+
+    # 3. Activity load safety
+    df['activity_load'] = df['activity_load'].fillna(0)
+    
+    return df
+
+
+# -------------------------------
+# STEP 7: MERGE EVERYTHING
+# -------------------------------
+
+def merge_all(daily, steps, hr, sleep, intensity):
+
+    df = daily.copy()
+
+    df = df.merge(steps, on=['Id', 'date'], how='left')
+    df = df.merge(hr, on=['Id', 'date'], how='left')
+    df = df.merge(sleep, on=['Id', 'date'], how='left')
+    df = df.merge(intensity, on=['Id', 'date'], how='left')
+
+    return df
+
+
+# -------------------------------
+# MAIN PIPELINE
+# -------------------------------
+
+def build_dataset():
+
+    daily = load_concat("data/dailyActivity_merged.csv",
+                        "data/dailyActivity_merged (2).csv")
+
+    hsteps = load_concat("data/hourlySteps_merged.csv",
+                         "data/hourlySteps_merged (2).csv")
+
+    hint = load_concat("data/hourlyIntensities_merged.csv",
+                       "data/hourlyIntensities_merged (2).csv")
+
+    hr = load_concat("data/heartrate_seconds_merged.csv",
+                     "data/heartrate_seconds_merged (2).csv")
+
+    msleep = load_concat("data/minuteSleep_merged.csv",
+                         "data/minuteSleep_merged (2).csv")
+
+
+    steps_daily = process_steps(hsteps)
+    intensity_daily = process_intensity(hint)
+    hr_daily = process_hr(hr)
+    sleep_daily = process_sleep(msleep)
+    daily_clean = process_daily(daily)
+
+
+    final = merge_all(daily_clean, steps_daily, hr_daily, sleep_daily, intensity_daily)
+
+    final = feature_engineering(final)
+
+    final = clean_data(final)
+    
+    # -------------------
+    # FIX NaNs BEFORE TARGETS
+    # -------------------
+
+    final['stress_index'] = final['stress_index'].fillna(0)
+    final['sleep_norm'] = final['sleep_norm'].fillna(0)
+    final['steps_norm'] = final['steps_norm'].fillna(0)
+    final['sleep_deficit'] = final['sleep_deficit'].fillna(0)
+
+    # -------------------
+    # GENERATE MOOD SCORE
+    # -------------------
+
+    final['mood_score'] = (
+        5
+        + 1.5 * final['sleep_norm']
+        + 1.2 * final['steps_norm']
+        - 1.5 * final['stress_index']
+        - 1.0 * final['sleep_deficit']
+    )
+
+    # Normalize to 1–10
+    final['mood_score'] = final['mood_score'].clip(1, 10)
+
+
+    # -------------------
+    # GENERATE PRODUCTIVITY
+    # -------------------
+
+    final['productivity_score'] = (
+        5
+        + 1.5 * final['steps_norm']
+        + 1.0 * final['activity_load'] / 100
+        - 1.2 * final['fatigue_index']
+    )
+
+    final['productivity_score'] = final['productivity_score'].clip(1, 10)
+
+    final.to_csv("final_dataset.csv", index=False)
+
+    print("✅ FINAL CLEAN + TEMPORAL DATASET READY!")
+
+
+# -------------------------------
+# RUN
+# -------------------------------
+
+if __name__ == "__main__":
+    build_dataset()

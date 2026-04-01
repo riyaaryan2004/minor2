@@ -113,20 +113,4 @@ w_train = sample_weight.iloc[:split_index]
 print("\nTraining samples:", X_train.shape[0])
 print("Testing samples:", X_test.shape[0])
 
-# ---------------- MODEL TRAINING ----------------
-
-# ⚠️ Keep LightGBM if you want, but this is safer:
-from sklearn.linear_model import Ridge
-
-mood_model = Ridge()
-prod_model = Ridge()
-
-mood_model.fit(X_train, y_train_mood)
-prod_model.fit(X_train, y_train_prod)
-
-# ---------------- SAVE MODELS ----------------
-
-joblib.dump(mood_model, os.path.join(save_dir, "lightgbm_mood.pkl"))
-joblib.dump(prod_model, os.path.join(save_dir, "lightgbm_productivity.pkl"))
-
-print("\n✅ Models and scaler saved successfully!")
+print("\n✅ Data preprocessing completed!")

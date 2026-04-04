@@ -69,52 +69,55 @@ def prepare_features(df):
 # -------- RULE ENGINE --------
 def apply_rules(row, mood, prod, raw_stress):
 
-    # -------- MOOD --------
-    if row['sleep_hours'] < 4:
-        mood -= 0.8
-    elif row['sleep_hours'] < 6:
-        mood -= 0.2
+    # -------- EXTREME SLEEP --------
+    if row['sleep_hours'] < 3:
+        mood -= 0.5
+        prod -= 0.5
+    elif row['sleep_hours'] > 8:
+        mood += 0.2   # reward good sleep
 
-    if raw_stress > 0.18:
-        mood -= 0.4
-    elif raw_stress > 0.15:
-        mood -= 0.2
+    # -------- EXTREME STRESS --------
+    if raw_stress > 0.20:
+        mood -= 0.3
+        prod -= 0.3
 
-    if row['sleep_hours'] > 6 and raw_stress < 0.15:
-        mood += 0.5
+    # -------- ACTIVITY BOOST --------
+    if row['total_steps'] > 7000:
+        prod += 0.3
 
-    # -------- PRODUCTIVITY --------
-    if row['sleep_hours'] < 4:
-        prod -= 0.8
-    elif row['sleep_hours'] < 5:
+    # -------- VERY LOW ACTIVITY --------
+    if row['total_steps'] < 1500:
         prod -= 0.4
+        
+    # -------- EXTREME INACTIVITY --------
+    if row['total_steps'] < 100:
+        mood -= 0.7
+        prod -= 1.0
 
-    if row['total_steps'] < 2000:
-        prod -= 0.8
-    elif row['total_steps'] < 4000:
-        prod -= 0.4
-    elif row['total_steps'] > 6000:
-        prod += 0.5
-
-    if raw_stress > 0.18:
-        prod -= 0.4
-    elif raw_stress > 0.15:
-        prod -= 0.2
-
-    if row['sleep_hours'] < 6 and raw_stress > 0.18:
-        prod -= 0.4
-
-    if mood <= 4:
-        prod -= 0.2
-    elif mood >= 7:
-        prod += 0.2
-
-    # clamp
+    # -------- CLAMP --------
     mood = max(1, min(10, mood))
     prod = max(1, min(10, prod))
 
     return round(mood, 2), round(prod, 2)
 
+def generate_summary(row, mood, prod):
+    sleep = row["sleep_hours"]
+    stress = row["stress_index"]
+    steps = row["total_steps"]
+
+    if sleep >= 6 and steps >= 5000 and stress < 0.17:
+        return "You're in a stable and balanced state today."
+
+    if stress > 0.18:
+        return "Stress is the main factor affecting your day."
+
+    if sleep < 5:
+        return "Low sleep is slightly impacting your performance."
+
+    if steps < 4000:
+        return "Low activity might be reducing your energy levels."
+
+    return "Overall performance is moderate with no major concerns."
 
 # -------- MAIN FUNCTION --------
 def predict_day():
@@ -128,8 +131,8 @@ def predict_day():
     latest = df.tail(1).copy()
     row = latest.iloc[0]
 
-    raw_stress = row["stress_index"]
-
+    raw_stress = np.log1p(row["stress_index"])
+    
     latest, selected_features = prepare_features(latest)
 
     X = scaler.transform(latest[selected_features])
@@ -163,12 +166,14 @@ def predict_day():
     else:
         for s in suggestions[:3]:
             print("-", s)
+            
+    print("\nInsight:", generate_summary(row, mood, prod))
 
     return mood, prod
 
 
 # -------- EVALUATION --------
-def evaluate_last_days(n=31):
+def evaluate_last_days(n=7):
 
     mood_model = joblib.load("saved_models/lightgbm_mood.pkl")
     prod_model = joblib.load("saved_models/lightgbm_productivity.pkl")
@@ -184,7 +189,7 @@ def evaluate_last_days(n=31):
         row_df = last_days.iloc[i:i+1].copy()
         row = row_df.iloc[0]
 
-        raw_stress = row["stress_index"]
+        raw_stress = np.log1p(row["stress_index"])
 
         row_df, selected_features = prepare_features(row_df)
 
@@ -203,4 +208,4 @@ def evaluate_last_days(n=31):
 
 if __name__ == "__main__":
     predict_day()
-    evaluate_last_days(31)
+    evaluate_last_days(7)

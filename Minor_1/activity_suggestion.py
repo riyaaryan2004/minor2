@@ -2,102 +2,110 @@ def get_activity_suggestions(row, mood, productivity):
 
     suggestions = []
 
-    # ---- SLEEP ANALYSIS ----
-    if row["sleep_hours"] < 4:
+    sleep = row["sleep_hours"]
+    stress = row["stress_index"]
+    steps = row["total_steps"]
+
+    # ---- SLEEP ANALYSIS (student realistic) ----
+    if sleep < 4:
         suggestions.append(
-            f"Severe sleep deprivation ({row['sleep_hours']} hrs). "
-            "Prioritize recovery sleep today. Avoid caffeine late evening and take proper rest."
+            f"Sleep is quite low ({sleep} hrs). Keep workload light and try to recover tonight."
         )
 
-    elif row["sleep_hours"] < 6:
+    elif sleep < 5:
         suggestions.append(
-            f"Sleep deficit detected ({row['sleep_hours']} hrs). "
-            "Aim for 7–8 hours tonight. Avoid screens 30 mins before bed and maintain fixed sleep timing."
+            f"Sleep is slightly low ({sleep} hrs) but manageable. Avoid overloading yourself."
+        )
+
+    elif sleep < 6:
+        suggestions.append(
+            f"Decent sleep ({sleep} hrs). You can function normally but aim for consistency."
         )
 
     elif row["sleep_deficit"] > 90:
         suggestions.append(
-            f"High sleep debt ({row['sleep_deficit']} mins). "
-            "Take a short 20–30 min nap or recover with longer sleep tonight."
+            f"Some sleep debt ({row['sleep_deficit']} mins). A short nap or good sleep tonight will help."
         )
 
 
     # ---- STRESS ANALYSIS ----
-    if row["stress_index"] > 0.18:
+    if stress > 0.18:
         suggestions.append(
-            f"High stress level ({row['stress_index']}). "
-            "Take a break and do 5–10 minutes of deep breathing or meditation."
+            f"Stress is high ({round(stress,3)}). Focus on one task at a time and avoid overload."
         )
 
-    elif row["stress_index"] > 0.15:
+    elif stress > 0.15:
         suggestions.append(
-            f"Moderate stress detected ({row['stress_index']}). "
-            "Avoid multitasking and focus on one task at a time."
+            f"Moderate stress ({round(stress,3)}). Take short breaks to stay focused."
         )
 
 
-    # ---- COMBINED CONDITION (IMPORTANT) ----
-    if row["stress_index"] > 0.16 and row["sleep_hours"] < 6:
+    # ---- COMBINED CONDITION (fixed threshold) ----
+    if stress > 0.18 and sleep < 5:
         suggestions.append(
-            "High stress combined with low sleep detected. "
-            "Avoid heavy workload today and prioritize recovery."
+            "Low sleep combined with high stress — take it slightly easy today."
         )
 
 
     # ---- PHYSICAL ACTIVITY ----
-    if row["total_steps"] < 4000:
+    if steps < 2000:
         suggestions.append(
-            f"Low activity detected ({row['total_steps']} steps). "
-            "Take a 15–20 min walk or do light stretching to boost energy."
+            f"Very low activity ({steps} steps). Even a short walk will help boost energy."
         )
 
-    elif row["total_steps"] > 9000:
+    elif steps < 4000:
         suggestions.append(
-            f"High activity load ({row['total_steps']} steps). "
-            "Ensure recovery: hydrate well and avoid overexertion."
+            f"Low activity ({steps} steps). Light movement can improve focus."
+        )
+
+    elif steps > 8000:
+        suggestions.append(
+            f"Good activity level ({steps} steps). Keep it up."
         )
 
 
     # ---- HEART RATE / FATIGUE ----
     if row["avg_hr_day"] > row["resting_hr"] + 15:
         suggestions.append(
-            "Elevated heart rate compared to baseline. "
-            "Possible fatigue or stress—take breaks and avoid intense activity."
+            "Heart rate is elevated compared to baseline. Take breaks and avoid intense activity."
         )
 
 
     # ---- PRODUCTIVITY-SPECIFIC ----
     if productivity < 4:
         suggestions.append(
-            "Very low productivity detected. "
-            "Start with small tasks and use Pomodoro technique (25 min work + 5 min break)."
+            "Productivity is quite low. Start with small tasks and build momentum (Pomodoro works well)."
         )
 
     elif productivity < 5:
         suggestions.append(
-            "Slightly low productivity. "
-            "Break tasks into smaller chunks and reduce distractions."
+            "Productivity slightly low. Break tasks into smaller chunks and reduce distractions."
         )
 
 
     # ---- MOOD-SPECIFIC ----
     if mood < 4:
         suggestions.append(
-            "Low mood detected. "
-            "Take a break and engage in relaxing activities like music or a short walk."
+            "Mood is low. Try a small refreshing activity like music or a short walk."
         )
 
     elif mood < 5:
         suggestions.append(
-            "Mildly low mood. "
-            "Try light social interaction or a refreshing activity."
+            "Mood slightly low. Light interaction or a quick break may help."
+        )
+
+
+    # ---- BALANCED STATE (NEW - IMPORTANT) ----
+    if sleep >= 5 and steps >= 6000 and stress < 0.16:
+        suggestions.append(
+            "Overall balance looks good. Maintain this routine."
         )
 
 
     # ---- DEFAULT ----
     if not suggestions:
         suggestions.append(
-            "Your metrics look balanced. Maintain current routine and consistency."
+            "Everything looks stable. Keep following your current routine."
         )
 
-    return suggestions
+    return suggestions[:3]

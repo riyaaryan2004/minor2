@@ -85,3 +85,8 @@ python file.py TOKEN 2026-04-01              Single day
 python file.py TOKEN 2026-04-01 2026-04-05   Date range
 
 ________________________________________________
+
+Run the movie recommender using:
+python movie_recommendor.py
+
+________________________________________________

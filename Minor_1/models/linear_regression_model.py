@@ -2,7 +2,8 @@ from train_model import (
     X_train, X_test,
     y_train_mood, y_test_mood,
     y_train_prod, y_test_prod,
-    feature_names
+    feature_names,
+    w_train   # ✅ added (for consistency, not used)
 )
 
 from sklearn.model_selection import cross_val_score, RepeatedKFold
@@ -58,8 +59,8 @@ print("MAE:", mae_prod)
 
 # ---------------- CROSS VALIDATION ----------------
 
-cv = RepeatedKFold(
-    n_splits=3,
+cv = RepeatedKFold(   # ✅ aligned with other models
+    n_splits=5,
     n_repeats=10,
     random_state=42
 )
@@ -121,10 +122,13 @@ print("\nModels saved successfully")
 
 # ---------------- SAVE RESULTS ----------------
 
-os.makedirs("results", exist_ok=True)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-json_file = "results/model_results.json"
-txt_file = "results/model_results.txt"
+results_dir = os.path.join(BASE_DIR, "results")
+os.makedirs(results_dir, exist_ok=True)
+
+json_file = os.path.join(results_dir, "model_results.json")
+txt_file = os.path.join(results_dir, "model_results.txt")
 
 
 results_data = {
@@ -150,7 +154,10 @@ results_data = {
 # JSON UPDATE
 if os.path.exists(json_file):
     with open(json_file, "r") as f:
-        data = json.load(f)
+        try:
+            data = json.load(f)
+        except:
+            data = {}
 else:
     data = {}
 
@@ -163,6 +170,8 @@ print("JSON results updated")
 
 
 # TEXT UPDATE
+# ---------------- TEXT UPDATE ----------------
+
 entry = f"""
 Model: LinearRegression
 Time: {results_data['timestamp']}
@@ -182,22 +191,8 @@ CV Mean R2: {prod_scores.mean()}
 -----------------------------------
 """
 
-if os.path.exists(txt_file):
-
-    with open(txt_file, "r") as f:
-        content = f.read()
-
-    if "Model: LinearRegression" in content:
-        parts = content.split("Model: LinearRegression")
-        new_content = parts[0]
-    else:
-        new_content = content
-
-    with open(txt_file, "w") as f:
-        f.write(new_content + entry)
-
-else:
-    with open(txt_file, "w") as f:
-        f.write(entry)
+# ✅ ALWAYS APPEND
+with open(txt_file, "a") as f:
+    f.write(entry)
 
 print("Text results updated")

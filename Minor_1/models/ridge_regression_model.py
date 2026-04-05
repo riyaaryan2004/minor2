@@ -3,11 +3,11 @@ from train_model import (
     y_train_mood, y_test_mood,
     y_train_prod, y_test_prod,
     feature_names,
-    w_train   # ✅ added
+    w_train
 )
 
-from sklearn.model_selection import cross_val_score, RepeatedKFold   # ✅ updated
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import cross_val_score, RepeatedKFold
+from sklearn.linear_model import Ridge
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
 import json
@@ -17,21 +17,11 @@ import os
 import numpy as np
 
 
-# ✅ BASE DIR FIX
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
 # ---------------- MOOD MODEL ----------------
 
-mood_model = RandomForestRegressor(
-    n_estimators=150,
-    max_depth=4,
-    min_samples_split=6,
-    min_samples_leaf=2,
-    random_state=42
-)
+mood_model = Ridge(alpha=2.0)   # ✅ tuned (better than default)
 
-mood_model.fit(X_train, y_train_mood, sample_weight=w_train)  # ✅ added
+mood_model.fit(X_train, y_train_mood, sample_weight=w_train)
 
 pred_mood = mood_model.predict(X_test)
 
@@ -41,7 +31,7 @@ r2_mood = r2_score(y_test_mood, pred_mood)
 rmse_mood = np.sqrt(mean_squared_error(y_test_mood, pred_mood))
 mae_mood = mean_absolute_error(y_test_mood, pred_mood)
 
-print("\nRandom Forest Mood Results")
+print("\nRidge Mood Results")
 print("R2:", r2_mood)
 print("RMSE:", rmse_mood)
 print("MAE:", mae_mood)
@@ -49,15 +39,9 @@ print("MAE:", mae_mood)
 
 # ---------------- PRODUCTIVITY MODEL ----------------
 
-prod_model = RandomForestRegressor(
-    n_estimators=150,
-    max_depth=4,
-    min_samples_split=6,
-    min_samples_leaf=2,
-    random_state=42
-)
+prod_model = Ridge(alpha=2.0)
 
-prod_model.fit(X_train, y_train_prod, sample_weight=w_train)  # ✅ added
+prod_model.fit(X_train, y_train_prod, sample_weight=w_train)
 
 pred_prod = prod_model.predict(X_test)
 
@@ -67,7 +51,7 @@ r2_prod = r2_score(y_test_prod, pred_prod)
 rmse_prod = np.sqrt(mean_squared_error(y_test_prod, pred_prod))
 mae_prod = mean_absolute_error(y_test_prod, pred_prod)
 
-print("\nRandom Forest Productivity Results")
+print("\nRidge Productivity Results")
 print("R2:", r2_prod)
 print("RMSE:", rmse_prod)
 print("MAE:", mae_prod)
@@ -75,14 +59,14 @@ print("MAE:", mae_prod)
 
 # ---------------- CROSS VALIDATION ----------------
 
-cv = RepeatedKFold(   # ✅ aligned with LightGBM
+cv = RepeatedKFold(
     n_splits=5,
     n_repeats=10,
     random_state=42
 )
 
 mood_scores = cross_val_score(
-    mood_model,   # ✅ same model
+    Ridge(alpha=2.0),
     X_train,
     y_train_mood,
     cv=cv,
@@ -90,7 +74,7 @@ mood_scores = cross_val_score(
 )
 
 prod_scores = cross_val_score(
-    prod_model,   # ✅ same model
+    Ridge(alpha=2.0),
     X_train,
     y_train_prod,
     cv=cv,
@@ -106,39 +90,37 @@ print("Productivity CV Average:", prod_scores.mean())
 print("\nTrain R2 (Productivity):", prod_model.score(X_train, y_train_prod))
 
 
-# ---------------- FEATURE IMPORTANCE ----------------
+# ---------------- FEATURE COEFFICIENTS ----------------
 
-print("\nMood Feature Importance")
+print("\nMood Feature Coefficients")
 
-mood_importance = mood_model.feature_importances_
-
-for name, score in sorted(
-    zip(feature_names, mood_importance),
-    key=lambda x: x[1],
+for name, coef in sorted(
+    zip(feature_names, mood_model.coef_),
+    key=lambda x: abs(x[1]),
     reverse=True
 ):
-    print(f"{name}: {score:.4f}")
+    print(f"{name}: {coef:.4f}")
 
 
-print("\nProductivity Feature Importance")
+print("\nProductivity Feature Coefficients")
 
-prod_importance = prod_model.feature_importances_
-
-for name, score in sorted(
-    zip(feature_names, prod_importance),
-    key=lambda x: x[1],
+for name, coef in sorted(
+    zip(feature_names, prod_model.coef_),
+    key=lambda x: abs(x[1]),
     reverse=True
 ):
-    print(f"{name}: {score:.4f}")
+    print(f"{name}: {coef:.4f}")
 
 
 # ---------------- SAVE MODELS ----------------
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 model_dir = os.path.join(BASE_DIR, "saved_models")
 os.makedirs(model_dir, exist_ok=True)
 
-joblib.dump(mood_model, os.path.join(model_dir, "random_forest_mood.pkl"))
-joblib.dump(prod_model, os.path.join(model_dir, "random_forest_productivity.pkl"))
+joblib.dump(mood_model, os.path.join(model_dir, "ridge_mood.pkl"))
+joblib.dump(prod_model, os.path.join(model_dir, "ridge_productivity.pkl"))
 
 print("\nModels saved successfully")
 
@@ -153,7 +135,7 @@ txt_file = os.path.join(results_dir, "model_results.txt")
 
 
 results_data = {
-    "model": "RandomForest",
+    "model": "Ridge",
     "timestamp": datetime.now().isoformat(),
 
     "mood": {
@@ -179,7 +161,7 @@ if os.path.exists(json_file):
 else:
     data = {}
 
-data["RandomForest"] = results_data
+data["Ridge"] = results_data
 
 with open(json_file, "w") as f:
     json.dump(data, f, indent=4)
@@ -189,7 +171,7 @@ print("JSON results updated")
 
 # TEXT UPDATE
 entry = f"""
-Model: RandomForest
+Model: Ridge
 Time: {results_data['timestamp']}
 
 Mood Model
@@ -212,8 +194,8 @@ if os.path.exists(txt_file):
     with open(txt_file, "r") as f:
         content = f.read()
 
-    if "Model: RandomForest" in content:
-        parts = content.split("Model: RandomForest")
+    if "Model: Ridge" in content:
+        parts = content.split("Model: Ridge")
         new_content = parts[0]
     else:
         new_content = content

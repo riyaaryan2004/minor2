@@ -112,10 +112,6 @@ def collect():
         hourly_steps[hour] += entry["value"]
 
     resting_hr = heart_daily_data.get("activities-heart",[{}])[0].get("value",{}).get("restingHeartRate",0)
-
-    # -------- DATA COVERAGE --------
-    valid_hours = sum(1 for h in range(24) if len(hourly_hr.get(h, [])) > 0)
-    data_coverage = round(valid_hours / 24, 2)
     
     os.makedirs("data", exist_ok=True)
     hourly_file = "data/hourly_data.csv"
@@ -275,7 +271,7 @@ def collect():
                 if not row:
                     continue
 
-                while len(row) < 23:
+                while len(row) < 22:
                     row.append("")
 
                 if row[0] != today:
@@ -292,7 +288,7 @@ def collect():
         "sleep_start_hour","wake_hour",
         "avg_hr_day","hr_std_day","hr_deviation",
         "stress_index",
-        "activity_load","is_weekend","data_coverage",
+        "activity_load","is_weekend",
         "mood_score","productivity_score"
         ])
 
@@ -320,7 +316,6 @@ def collect():
             stress_index,
             round(activity_load,2),
             is_weekend,
-            data_coverage,
             "",
             ""
         ])
@@ -353,7 +348,7 @@ def rate():
             if not row:
                 continue
 
-            while len(row) < 23:
+            while len(row) < 22:
                 row.append("")
 
             if row[0] == today:

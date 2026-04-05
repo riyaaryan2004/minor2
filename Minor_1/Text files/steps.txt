@@ -1,52 +1,50 @@
 1. Open terminal.
-2. Go to project folder.
+2. Navigate to the project folder.
 3. Run:
 
    python app.py
 
-Make sure server is running on:
+Make sure the server is running at:
 http://localhost:5000
-
 
 Around 11:55 PM every day:
 
-1. Open browser.
+1. Open your browser.
+
 2. Go to:
 
    http://localhost:5000/login
 
-3. Complete Fitbit login (if asked).
-4. System will automatically fetch data using /collect route.
+3. Complete Fitbit login (if prompted).
+
+4. The system will automatically fetch data using the /collect route.
 
 This will:
-- Fetch heart rate data
-- Fetch step data
-- Fetch sleep data
-- Update hourly_data.csv
-- Update daily_data.csv
+
+* Fetch heart rate data
+* Fetch step data
+* Fetch sleep data
+* Update hourly_data.csv
+* Update daily_data.csv
+
+________________________________________________
 
 Immediately after data collection:
 
 Open browser and go to:
 
-   http://localhost:5000/rate?mood=X&productivity=Y
-
+http://localhost:5000/rate?mood=X&productivity=Y
 
 Replace:
 X = mood score (1–10)
 Y = productivity score (1–10)
 
-
-Mood Scale (Follow Consistently):
-1–3   = Very Low
-4–6   = Average
-7–8   = Good
-9–10  = Excellent
+For mood and productivity scale follow info.txt
 
 Example:
 If mood was good and productivity was average:
 
-   http://localhost:5000/rate?mood=7&productivity=6
+http://localhost:5000/rate?mood=7&productivity=6
 
 Open:
 
@@ -54,17 +52,36 @@ data/daily_data.csv
 
 Check:
 
-- A new row for today is added
-- mood_score column is filled
-- productivity_score column is filled
-- No duplicate date exists
-
-To fix some day's data
-python repair_day.py 2026-03-04 ACCESS_TOKEN
-after running python app.py and localhost on browser
+* A new row for today is added
+* mood_score column is filled
+* productivity_score column is filled
+* No duplicate date exists
 
 ________________________________________________
 
-to generate all data at once
+To fix a specific day's data:
+
+Run:
+python repair_day.py 2026-03-04 ACCESS_TOKEN
+
+(Ensure python app.py is running and server is active in browser)
+
+________________________________________________
+
+To generate all data at once:
+
+Run:
 python generate_all_days.py YOUR_ACCESS_TOKEN
-after running python app.py and localhost on browser
+
+(Ensure python app.py is running and server is active in browser)
+
+________________________________________________
+
+To generate live HR graphs:
+
+Command                                      Output
+python file.py TOKEN                         Today only
+python file.py TOKEN 2026-04-01              Single day
+python file.py TOKEN 2026-04-01 2026-04-05   Date range
+
+________________________________________________

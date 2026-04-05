@@ -95,19 +95,18 @@ def feature_engineering(df):
     df['day_of_week'] = df['date'].dt.dayofweek
     df['is_weekend'] = df['day_of_week'].isin([5, 6]).astype(int)
 
-    # HR deviation PER USER
+    # HR deviation PER USER (FIXED NaN)
     df['hr_deviation'] = df.groupby('Id')['avg_hr_day'].transform(
-        lambda x: x - x.rolling(3).mean()
+        lambda x: (x - x.rolling(3).mean()).fillna(0)
     )
 
     # Stress index
     df['stress_index'] = df['avg_hr_day'] / (df['hr_std_day'] + 1)
 
-    # Sleep deficit
-    df['sleep_deficit'] = 8 - df['sleep_hours']
+    # Sleep deficit (FIXED)
+    df['sleep_deficit'] = (8 - df['sleep_hours']).clip(lower=0)
 
     return df
-
 
 # -------------------------------
 # UPDATED CLEANING (🔥 FIXED ALL ISSUES)
@@ -258,10 +257,32 @@ def build_dataset():
 
     final = merge_all(daily_clean, steps_daily, hr_daily, sleep_daily, intensity_daily)
 
+    # -------------------------------
+    # 🔥 REMOVE EXTERNAL ENGINEERED FEATURES (IMPORTANT)
+    # -------------------------------
+
+    drop_cols = [
+        'steps_norm', 'sleep_norm',
+        'steps_prev1', 'sleep_prev1',
+        'steps_avg_3', 'sleep_avg_3',
+        'sleep_efficiency',
+        'stress_sleep_interaction',
+        'recovery_score',
+        'fatigue_index',
+        'activity_trend',
+        'sleep_variation'
+    ]
+
+    final = final.drop(columns=[col for col in drop_cols if col in final.columns])
+
+    # -------------------------------
+    # CONTINUE NORMAL PIPELINE
+    # -------------------------------
+
     final = feature_engineering(final)
 
     final = clean_data(final)
-    
+
     # -------------------
     # FIX NaNs BEFORE TARGETS
     # -------------------
@@ -283,9 +304,7 @@ def build_dataset():
         - 1.0 * final['sleep_deficit']
     )
 
-    # Normalize to 1–10
     final['mood_score'] = final['mood_score'].clip(1, 10)
-
 
     # -------------------
     # GENERATE PRODUCTIVITY
@@ -294,7 +313,7 @@ def build_dataset():
     final['productivity_score'] = (
         5
         + 1.5 * final['steps_norm']
-        + 1.0 * final['activity_load'] / 100
+        + 0.5 * (final['activity_load'] / 100)   # 🔥 FIXED (was too strong)
         - 1.2 * final['fatigue_index']
     )
 
@@ -303,6 +322,7 @@ def build_dataset():
     final.to_csv("final_dataset.csv", index=False)
 
     print("✅ FINAL CLEAN + TEMPORAL DATASET READY!")
+    
 
 
 # -------------------------------

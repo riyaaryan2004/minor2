@@ -3,7 +3,9 @@ import pandas as pd
 import numpy as np 
 
 from activity_suggestion import get_activity_suggestions
+import os
 
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 # -------- MOOD TAGS --------
 def mood_label(score):
@@ -122,11 +124,11 @@ def generate_summary(row, mood, prod):
 # -------- MAIN FUNCTION --------
 def predict_day():
 
-    mood_model = joblib.load("saved_models/lightgbm_mood.pkl")
-    prod_model = joblib.load("saved_models/lightgbm_productivity.pkl")
-    scaler = joblib.load("saved_models/scaler.pkl")
+    mood_model = joblib.load(os.path.join(BASE_DIR, "saved_models", "lightgbm_mood.pkl"))
+    prod_model = joblib.load(os.path.join(BASE_DIR, "saved_models", "lightgbm_productivity.pkl"))
+    scaler = joblib.load(os.path.join(BASE_DIR, "saved_models", "scaler.pkl"))
 
-    df = pd.read_csv("data/daily_data.csv")
+    df = pd.read_csv(os.path.join(BASE_DIR, "data", "daily_data.csv"))
 
     latest = df.tail(1).copy()
     row = latest.iloc[0]
@@ -175,11 +177,11 @@ def predict_day():
 # -------- EVALUATION --------
 def evaluate_last_days(n=7):
 
-    mood_model = joblib.load("saved_models/lightgbm_mood.pkl")
-    prod_model = joblib.load("saved_models/lightgbm_productivity.pkl")
-    scaler = joblib.load("saved_models/scaler.pkl")
+    mood_model = joblib.load(os.path.join(BASE_DIR, "saved_models", "lightgbm_mood.pkl"))
+    prod_model = joblib.load(os.path.join(BASE_DIR, "saved_models", "lightgbm_productivity.pkl"))
+    scaler = joblib.load(os.path.join(BASE_DIR, "saved_models", "scaler.pkl"))
 
-    df = pd.read_csv("data/daily_data.csv")
+    df = pd.read_csv(os.path.join(BASE_DIR, "data", "daily_data.csv"))
 
     last_days = df.tail(n).copy()
 
@@ -208,4 +210,4 @@ def evaluate_last_days(n=7):
 
 if __name__ == "__main__":
     predict_day()
-    evaluate_last_days(7)
+    #evaluate_last_days(7)

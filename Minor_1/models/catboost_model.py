@@ -2,10 +2,11 @@ from train_model import (
     X_train, X_test,
     y_train_mood, y_test_mood,
     y_train_prod, y_test_prod,
-    feature_names
+    feature_names,
+    w_train   # ✅ added (same as LightGBM)
 )
 
-from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+from sklearn.model_selection import RepeatedKFold, cross_val_score  # ✅ updated CV
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from sklearn.linear_model import Ridge
 
@@ -25,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def get_model():
     return CatBoostRegressor(
-        iterations=300,
+        iterations=200,   # ✅ slightly safer for small data
         depth=3,
         learning_rate=0.03,
         l2_leaf_reg=5,
@@ -48,7 +49,7 @@ print("Test shape:", X_test.shape)
 # =======================
 
 mood_model = get_model()
-mood_model.fit(X_train, y_train_mood)
+mood_model.fit(X_train, y_train_mood, sample_weight=w_train)  # ✅ added
 
 pred_mood = mood_model.predict(X_test)
 
@@ -67,7 +68,7 @@ print("MAE:", mae_mood)
 # =======================
 
 prod_model = get_model()
-prod_model.fit(X_train, y_train_prod)
+prod_model.fit(X_train, y_train_prod, sample_weight=w_train)  # ✅ added
 
 pred_prod = prod_model.predict(X_test)
 
@@ -85,13 +86,17 @@ print("MAE:", mae_prod)
 # 🔹 Time Series CV
 # =======================
 
-tscv = TimeSeriesSplit(n_splits=5)
+cv = RepeatedKFold(   # ✅ aligned with LightGBM
+    n_splits=5,
+    n_repeats=10,
+    random_state=42
+)
 
 mood_scores = cross_val_score(
     get_model(),
     X_train,
     y_train_mood,
-    cv=tscv,
+    cv=cv,
     scoring="r2"
 )
 
@@ -99,7 +104,7 @@ prod_scores = cross_val_score(
     get_model(),
     X_train,
     y_train_prod,
-    cv=tscv,
+    cv=cv,
     scoring="r2"
 )
 
@@ -190,3 +195,44 @@ with open(json_file, "w") as f:
     json.dump(data, f, indent=4)
 
 print("Results saved successfully")
+
+# =======================
+# 🔹 Save Results to TXT
+# =======================
+
+txt_file = os.path.join(results_dir, "model_results.txt")
+
+entry = f"""
+Model: CatBoost_model
+Time: {results_data['timestamp']}
+
+Mood Model
+R2: {r2_mood}
+CV Mean R2: {mood_scores.mean()}
+Baseline (Ridge): {ridge_r2_mood}
+
+Productivity Model
+R2: {r2_prod}
+CV Mean R2: {prod_scores.mean()}
+Baseline (Ridge): {ridge_r2_prod}
+
+-----------------------------------
+"""
+
+if os.path.exists(txt_file):
+
+    with open(txt_file, "r") as f:
+        content = f.read()
+
+    # safer replacement (no fragile split)
+    if "Model: CatBoost_model" in content:
+        content = content.split("Model: CatBoost_model")[0]
+
+    with open(txt_file, "w") as f:
+        f.write(content + entry)
+
+else:
+    with open(txt_file, "w") as f:
+        f.write(entry)
+
+print("Text results updated")

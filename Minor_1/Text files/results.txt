@@ -1,2 +1,2 @@
-Mood prediction → CatBoost
-Productivity prediction → RandomForest
+Mood prediction → Lightgbm
+Productivity prediction → Lightgbm

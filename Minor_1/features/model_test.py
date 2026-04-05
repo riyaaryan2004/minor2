@@ -1,11 +1,21 @@
 import csv
 from datetime import datetime
 import os
+import sys
 
-# 🔥 import prediction
+# -----------------------------
+# BASE DIR (project root)
+# -----------------------------
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(BASE_DIR)
+
+# 🔥 import prediction (FIXED)
 from predict_day import predict_day
 
-file_name = "data/evaluation_results.csv"
+# -----------------------------
+# FILE PATH (correct location)
+# -----------------------------
+file_name = os.path.join(BASE_DIR, "data", "evaluation_results.csv")
 file_exists = os.path.isfile(file_name)
 
 # ---- USER NAME ----
@@ -31,6 +41,11 @@ actual_prod = float(input("Actual Productivity (0-10): "))
 # ---- ERROR ----
 mood_error = round(abs(actual_mood - mood_pred), 2)
 prod_error = round(abs(actual_prod - prod_pred), 2)
+
+# -----------------------------
+# ENSURE DATA FOLDER EXISTS
+# -----------------------------
+os.makedirs(os.path.join(BASE_DIR, "data"), exist_ok=True)
 
 # ---- SAVE ----
 with open(file_name, "a", newline="") as file:

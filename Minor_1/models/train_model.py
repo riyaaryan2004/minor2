@@ -16,7 +16,7 @@ print("Original Shape:", df.shape)
 # Sort by date
 df = df.sort_values("date")
 
-# ✅ Source column
+# Source column
 df["source"] = df["date"].apply(lambda x: "real" if x >= "2026-03-01" else "synthetic")
 
 # ---------------- FEATURE ENGINEERING ----------------
@@ -47,9 +47,6 @@ df = df.drop(columns=[
 ])
 
 # Remove missing
-df = df.dropna()
-print("Clean Shape:", df.shape)
-
 # Features
 selected_features = [
     "sleep_efficiency",
@@ -71,8 +68,12 @@ X = df[selected_features]
 feature_names = selected_features
 
 # Targets
-y_mood = df["mood_score"].clip(1, 10)
-y_prod = df["productivity_score"].clip(1, 10)
+y_mood = df["mood_score"].fillna(df["mood_score"].mean()).clip(1, 10)
+y_prod = df["productivity_score"].fillna(df["productivity_score"].mean()).clip(1, 10)
+
+print("\nNaN check in targets:")
+print("Mood NaN:", y_mood.isna().sum())
+print("Prod NaN:", y_prod.isna().sum())
 
 print("\nFinal Features Used:", list(X.columns))
 
@@ -113,4 +114,4 @@ w_train = sample_weight.iloc[:split_index]
 print("\nTraining samples:", X_train.shape[0])
 print("Testing samples:", X_test.shape[0])
 
-print("\n✅ Data preprocessing completed!")
+print("\nData preprocessing completed!")

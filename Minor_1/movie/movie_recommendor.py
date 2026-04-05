@@ -2,13 +2,13 @@ import requests
 import sys
 import os
 import random
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 API_KEY = "6439995846ae6446d2e2e4079a88f34a"
 
 
-# -------------------------------
 # 1. IMPORT YOUR ML OUTPUT
-# -------------------------------
 def get_today_scores():
     import io
 
@@ -33,9 +33,7 @@ def get_today_scores():
     return mood_score, prod_score
 
 
-# -------------------------------
 # 2. LABELS
-# -------------------------------
 def mood_label(score):
     score = round(score)
     mapping = {
@@ -70,9 +68,58 @@ def prod_label(score):
     return mapping.get(score, "Unknown")
 
 
-# -------------------------------
+def fetch_movies(genre_id, language):
+    url = "https://api.themoviedb.org/3/discover/movie"
+
+    params = {
+        "api_key": API_KEY,
+        "with_original_language": language,
+        "sort_by": "vote_average.desc",
+        "with_genres": genre_id,
+        "vote_average.gte": 7.5,
+        "vote_count.gte": 500,
+        "primary_release_date.gte": "2005-01-01",
+        "primary_release_date.lte": "2023-12-31",
+        "include_adult": False,
+        "page": 1
+    }
+
+    # remove animation unless explicitly chosen
+    if genre_id != 16:
+        params["without_genres"] = 16
+        
+    try:
+        session = requests.Session()
+
+        retry = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[500, 502, 503, 504]
+        )
+
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount("https://", adapter)
+
+        response = session.get(url, params=params, timeout=10)
+
+        if response.status_code != 200:
+            return []
+
+        data = response.json()
+        results = data.get("results", [])
+
+        random.shuffle(results)
+        return results[:5]
+
+    except requests.exceptions.SSLError:
+        #print("⚠️ SSL Error: Network issue, skipping API...")
+        return []
+
+    except requests.exceptions.RequestException:
+        #print("⚠️ Request failed, skipping API...")
+        return []
+    
 # 3. STATE ANALYSIS
-# -------------------------------
 def analyze_state(mood, prod):
     if mood <= 2:
         mood_state = "very_low"
@@ -95,9 +142,7 @@ def analyze_state(mood, prod):
     return mood_state, prod_state
 
 
-# -------------------------------
 # 4. INSIGHT
-# -------------------------------
 def combined_insight(mood, prod):
     if mood < 4 and prod < 4:
         return "Low energy day — you may need rest and light content."
@@ -111,9 +156,7 @@ def combined_insight(mood, prod):
         return "Balanced state — flexible viewing options."
 
 
-# -------------------------------
 # 5. GENRE DECISION
-# -------------------------------
 def decide_genre(mood_state, prod_state):
 
     GENRES = {
@@ -151,53 +194,7 @@ def decide_genre(mood_state, prod_state):
 
     return GENRES["comedy"], "default"
 
-
-# -------------------------------
-# 6. LANGUAGE DECISION
-# -------------------------------
-def decide_languages(mood, prod):
-    if mood < 4:
-        return ["hi", "en"]   # comfort → Hindi + English
-    elif mood >= 7 and prod >= 6:
-        return ["en"]         # intense → English
-    else:
-        return ["hi", "en"]   # mixed
-
-
-# -------------------------------
-# 7. FETCH MOVIES
-# -------------------------------
-def fetch_movies(genre_id, language):
-    url = "https://api.themoviedb.org/3/discover/movie"
-
-    params = {
-        "api_key": API_KEY,
-        "with_original_language": language,
-        "sort_by": "popularity.desc",
-        "with_genres": genre_id,
-        "vote_average.gte": 7.0,
-        "vote_count.gte": 300,
-        "release_date.gte": "2005-01-01",
-        "release_date.lte": "2023-12-31",
-        "include_adult": False,
-        "page": 1
-    }
-
-    response = requests.get(url, params=params, timeout=10)
-
-    if response.status_code != 200:
-        return []
-
-    data = response.json()
-    results = data.get("results", [])
-
-    random.shuffle(results)  # add variation
-    return results[:5]
-
-
-# -------------------------------
-# 8. MAIN PIPELINE
-# -------------------------------
+# 6. MAIN PIPELINE
 def recommend_movies():
     mood, prod = get_today_scores()
 
@@ -217,13 +214,20 @@ def recommend_movies():
 
     print(f"Strategy: {logic}")
 
-    languages = decide_languages(mood, prod)
-    print(f"Language Preference: {', '.join(languages)}")
-
     movies = []
 
-    for lang in languages:
-        movies.extend(fetch_movies(genre_id, lang))
+    # 🔥 dynamic mix logic
+    if mood < 4:
+        lang_plan = [("hi", 3), ("en", 2)]
+    elif mood >= 7 and prod >= 6:
+        lang_plan = [("en", 4), ("hi", 1)]
+    else:
+        lang_plan = [("hi", 2), ("en", 3)]
+
+    for lang, count in lang_plan:
+        fetched = fetch_movies(genre_id, lang)
+        random.shuffle(fetched)
+        movies.extend(fetched[:count])
 
     # remove duplicates
     seen = set()
@@ -237,17 +241,42 @@ def recommend_movies():
 
     print("\n🎬 Recommended Movies:\n")
 
-    if not unique_movies:
-        print("No movies found.")
-        return
+    # ensure at least 5 movies with English included
+    if len(unique_movies) < 5:
+        fallback_en = [
+            {"title": "Inception", "release_date": "2010", "vote_average": 8.8},
+            {"title": "Interstellar", "release_date": "2014", "vote_average": 8.6},
+            {"title": "The Dark Knight", "release_date": "2008", "vote_average": 9.0},
+            {"title": "Forrest Gump", "release_date": "1994", "vote_average": 8.4},
+            {"title": "The Pursuit of Happyness", "release_date": "2006", "vote_average": 8.0}
+        ]
+
+        fallback_hi = [
+            {"title": "3 Idiots", "release_date": "2009", "vote_average": 8.4},
+            {"title": "Taare Zameen Par", "release_date": "2007", "vote_average": 8.3}
+        ]
+
+        # fill English first
+        for f in fallback_en:
+            if len(unique_movies) >= 5:
+                break
+            if f["title"] not in seen:
+                unique_movies.append(f)
+                seen.add(f["title"])
+
+        # then Hindi if still needed
+        for f in fallback_hi:
+            if len(unique_movies) >= 5:
+                break
+            if f["title"] not in seen:
+                unique_movies.append(f)
+                seen.add(f["title"])
 
     for i, movie in enumerate(unique_movies, 1):
         year = movie.get("release_date", "N/A")[:4] if movie.get("release_date") else "N/A"
         print(f"{i}. {movie['title']} ({year}) ⭐ {movie['vote_average']}")
 
 
-# -------------------------------
 # RUN
-# -------------------------------
 if __name__ == "__main__":
     recommend_movies()

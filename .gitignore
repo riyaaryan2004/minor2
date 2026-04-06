@@ -1,16 +1,43 @@
-# Ignore datasets
-#data/
-#*.csv
-
-# Python cache
+# ========================
+# Python
+# ========================
 __pycache__/
 *.pyc
 
+# ========================
 # Jupyter
+# ========================
 .ipynb_checkpoints/
 
-# OS junk
+# ========================
+# OS files
+# ========================
 .DS_Store
+Thumbs.db
 
-# Ignore CatBoost training artifacts
+# ========================
+# Large Data Files
+# ========================
+*.csv
+*.pkl
+
+# ========================
+# Images (generated graphs)
+# ========================
+*.png
+*.jpg
+*.jpeg
+
+# ========================
+# Project-specific ignores
+# ========================
+Minor_2/data/
+Minor_1/features/hr_graph/
 Minor_2/catboost_info/
+
+# ========================
+# Keep important small data (optional)
+# ========================
+!Minor_1/data/daily_data.csv
+!Minor_1/data/evaluation_results.csv
+!Minor_1/data/hourly_data.csv

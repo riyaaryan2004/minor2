@@ -1,9 +1,9 @@
-def get_activity_suggestions(row, mood, productivity):
+def get_activity_suggestions(row, mood, productivity, raw_stress):
 
     suggestions = []
 
     sleep = row["sleep_hours"]
-    stress = row["stress_index"]
+    stress = raw_stress   # ✅ FIXED (was row["stress_index"])
     steps = row["total_steps"]
 
     # ---- SLEEP ANALYSIS (student realistic) ----

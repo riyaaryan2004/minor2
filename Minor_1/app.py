@@ -112,7 +112,7 @@ def collect():
         hourly_steps[hour] += entry["value"]
 
     resting_hr = heart_daily_data.get("activities-heart",[{}])[0].get("value",{}).get("restingHeartRate",0)
-
+    
     os.makedirs("data", exist_ok=True)
     hourly_file = "data/hourly_data.csv"
 
@@ -290,7 +290,7 @@ def collect():
         "stress_index",
         "activity_load","is_weekend",
         "mood_score","productivity_score"
-    ])
+        ])
 
         for row in existing_daily:
             writer.writerow(row)
@@ -319,7 +319,6 @@ def collect():
             "",
             ""
         ])
-
     return {"status": "Hourly and Daily data collected successfully"}
 
 

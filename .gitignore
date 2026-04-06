@@ -12,5 +12,5 @@ __pycache__/
 # OS junk
 .DS_Store
 
-#Ignore CatBoost training artifacts"
+# Ignore CatBoost training artifacts
 Minor_2/catboost_info/

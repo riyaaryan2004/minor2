@@ -1,0 +1,31 @@
+.wrapper {
+  display: flex;
+}
+
+.sidebar {
+  width: 220px;
+  height: 100vh;
+  background: #020617;
+  padding: 20px;
+  border-right: 1px solid #1e293b;
+}
+
+.logo {
+  color: white;
+  margin-bottom: 30px;
+}
+
+.menu p {
+  color: #94a3b8;
+  margin: 12px 0;
+  cursor: pointer;
+}
+
+.menu p:hover {
+  color: white;
+}
+
+.main {
+  flex: 1;
+  padding: 30px;
+}

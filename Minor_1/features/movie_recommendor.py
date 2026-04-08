@@ -15,7 +15,7 @@ def get_today_scores():
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     sys.path.append(base_dir)
 
-    from predict_day import predict_day
+    from features.predict_day import predict_day
 
     current_dir = os.getcwd()
     os.chdir(base_dir)
@@ -276,6 +276,7 @@ def recommend_movies():
         year = movie.get("release_date", "N/A")[:4] if movie.get("release_date") else "N/A"
         print(f"{i}. {movie['title']} ({year}) ⭐ {movie['vote_average']}")
 
+    return unique_movies
 
 # RUN
 if __name__ == "__main__":

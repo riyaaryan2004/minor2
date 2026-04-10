@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { getPredictions, getHRLive } from "../api/api";
+import { getPredictions, getHRData, getHRMinute } from "../api/api";
 import HeartChart from "./HeartChart";
+import HeartChartDetailed from "./HeartChartDetailed";
 import styles from "./Dashboard.module.css";
 
 function Dashboard() {
   const [data, setData] = useState(null);
-  const [hrData, setHrData] = useState([]);  
+  const [hrData, setHrData] = useState([]);
+  const [hrMinute, setHrMinute] = useState([]);   // 🔥 NEW
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
@@ -14,8 +16,11 @@ function Dashboard() {
     const res = await getPredictions();
     setData(res);
 
-    const hr = await getHRLive();   
+    const hr = await getHRData();
     setHrData(hr);
+
+    const minute = await getHRMinute();   // 🔥 NEW
+    setHrMinute(minute);
 
     setLoading(false);
   };
@@ -56,10 +61,14 @@ function Dashboard() {
 
       {/* Graph Section */}
       <div className={styles.graphContainer}>
-        <h2>Heart Rate (Today)</h2>
+        <h2>Heart Rate (Summary)</h2>
+        <HeartChart data={hrData} />   {/* smooth hourly */}
+      </div>
 
-        {/*  use real data instead of dummy */}
-        <HeartChart data={hrData} />
+      {/* 🔥 NEW Detailed Graph */}
+      <div className={styles.graphContainer}>
+        <h2>Heart Rate (Detailed)</h2>
+        <HeartChartDetailed data={hrMinute} />
       </div>
 
       <button className={styles.button} onClick={fetchData}>

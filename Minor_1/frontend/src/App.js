@@ -5,9 +5,9 @@ import Alerts from "./components/Alerts";
 
 function App() {
   return (
-    <Layout>
-      <Dashboard />
+    <Layout>   
       <Recommendations />
+      <Dashboard />
       <Alerts />
     </Layout>
   );

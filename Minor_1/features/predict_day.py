@@ -2,7 +2,7 @@ import joblib
 import pandas as pd
 import numpy as np 
 
-from features.activity_suggestion import get_activity_suggestions
+from activity_suggestion import get_activity_suggestions
 import os
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))

@@ -3,6 +3,21 @@
 # ========================
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# ========================
+# Node / React
+# ========================
+node_modules/
+Minor_1/node_modules/
+Minor_1/frontend/node_modules/
+
+# ========================
+# Build / Production
+# ========================
+build/
+dist/
 
 # ========================
 # Jupyter
@@ -16,28 +31,50 @@ __pycache__/
 Thumbs.db
 
 # ========================
-# Large Data Files
+# Logs
 # ========================
-*.csv
-*.pkl
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # ========================
-# Images (generated graphs)
+# Environment / Secrets
+# ========================
+.env
+.env.*
+token.txt
+
+# ========================
+# ML / Model Files
+# ========================
+*.pkl
+Minor_1/models/catboost_info/
+Minor_2/catboost_info/
+
+# ========================
+# Images (ignore all)
 # ========================
 *.png
 *.jpg
 *.jpeg
 
-# ========================
-# Project-specific ignores
-# ========================
-Minor_2/data/
-Minor_1/features/hr_graph/
-Minor_2/catboost_info/
+# BUT KEEP GRAPHS
+!Minor_1/features/hr_graph/
+!Minor_1/features/hr_graph/*.png
 
 # ========================
-# Keep important small data (optional)
+# Large Data Files
 # ========================
+*.csv
+
+# BUT KEEP IMPORTANT DATASETS
 !Minor_1/data/daily_data.csv
-!Minor_1/data/evaluation_results.csv
 !Minor_1/data/hourly_data.csv
+!Minor_1/data/evaluation_results.csv
+
+# ========================
+# Misc
+# ========================
+coverage/
+.vscode/

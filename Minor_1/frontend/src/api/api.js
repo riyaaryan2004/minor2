@@ -50,12 +50,17 @@ export const getAlerts = async () => {
 };
 
 // Get heart rate data (hourly graph)
-export const getHRLive = async () => {
+export const getHRData = async () => {
   try {
-    const res = await fetch("http://127.0.0.1:5000/hr-live");
+    const res = await fetch(`${BASE_URL}/hr-data`);
     return await res.json();
   } catch (err) {
     console.error(err);
     return [];
   }
+};
+
+export const getHRMinute = async () => {
+  const res = await fetch("http://127.0.0.1:5000/hr-minute");
+  return await res.json();
 };

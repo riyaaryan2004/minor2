@@ -1,3 +1,11 @@
+import sys
+import os
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+FEATURES_DIR = os.path.join(BASE_DIR, "features")
+
+sys.path.append(FEATURES_DIR)
+
 from flask import Flask,redirect,request
 import requests
 import base64
@@ -426,7 +434,7 @@ def activity():
     df = pd.read_csv(os.path.join("data", "daily_data.csv"))
     row = df.tail(1).iloc[0]
 
-    suggestions = get_activity_suggestions(row, mood, prod)
+    suggestions = get_activity_suggestions(row, mood, prod, row["stress_index"])
 
     return {
         "suggestions": suggestions
@@ -481,5 +489,34 @@ def hr_live():
     data = get_intraday_hr(ACCESS_TOKEN, today)
 
     return data
+
+# ===================== HEART RATE MINUTE GRAPH =====================
+@app.route("/hr-minute")
+def hr_minute():
+    from features.hr_live import get_intraday_hr
+    import pandas as pd
+    import os
+
+    # read token
+    with open("token.txt", "r") as f:
+        ACCESS_TOKEN = f.read().strip()
+
+    # 🔥 get latest date from dataset
+    df = pd.read_csv(os.path.join("data", "daily_data.csv"))
+    latest_date = df["date"].max()
+
+    # fetch intraday data for that date
+    data = get_intraday_hr(ACCESS_TOKEN, latest_date)
+
+    result = []
+
+    for i, entry in enumerate(data):
+        result.append({
+            "x": i,
+            "hr": entry["hr"]
+        })
+
+    return result
+
 if __name__ == "__main__":
     app.run(debug=True)

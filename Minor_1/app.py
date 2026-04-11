@@ -1,3 +1,11 @@
+import sys
+import os
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+FEATURES_DIR = os.path.join(BASE_DIR, "features")
+
+sys.path.append(FEATURES_DIR)
+
 from flask import Flask,redirect,request
 import requests
 import base64
@@ -6,10 +14,13 @@ import os
 from datetime import datetime
 from collections import defaultdict
 import numpy as np
+from flask_cors import CORS
 
 # app is the complete web server
 # isi app par routes banenge
 app = Flask(__name__)
+
+CORS(app)
 
 CLIENT_ID = "23TXMK"
 CLIENT_SECRET = "b19bed40782c38915f7a78687262612b"
@@ -63,12 +74,18 @@ def callback():
 
     access_token = response.json()["access_token"]
 
-    return redirect(f"/collect?token={access_token}")
+    # SAVE TOKEN (inside function)
+    with open("token.txt", "w") as f:
+        f.write(access_token)
+
+    # RETURN INSIDE FUNCTION
+    return redirect("/collect")
 
 # Data Collection Route
 @app.route("/collect")
 def collect():
-    access_token = request.args.get("token")
+    with open("token.txt", "r") as f:
+        access_token = f.read().strip()
 
     if not access_token:
         return {"error": "Missing access token"}, 400
@@ -364,6 +381,142 @@ def rate():
 
     return {"status": "Mood and productivity recorded successfully"}
 
+# ===================== PREDICT ROUTE =====================
+@app.route("/predict")
+def predict():
+    from features.predict_day import predict_day
+    import pandas as pd
+    import os
+
+    result = predict_day()
+
+    # unpack tuple
+    mood, prod = result
+
+    # read latest data (for stress & sleep)
+    df = pd.read_csv(os.path.join("data", "daily_data.csv"))
+    latest = df.tail(1).iloc[0]
+
+    return {
+        "stress": round(latest["stress_index"], 3),
+        "productivity": round(prod, 2),
+        "sleep": round(latest["sleep_hours"], 2),
+        "mood": round(mood, 2)
+    }
+    
+# ===================== MOVIES ROUTE =====================
+@app.route("/movies")
+def movies():
+    from features.predict_day import predict_day
+    from features.movie_recommendor import recommend_movies
+
+    # get mood & productivity
+    mood, prod = predict_day()
+
+    movies = recommend_movies()
+
+    return {
+        "movies": movies
+    }
+
+# ===================== ACTIVITY ROUTE =====================
+@app.route("/activity")
+def activity():
+    from features.predict_day import predict_day
+    from features.activity_suggestion import get_activity_suggestions
+    import pandas as pd
+    import os
+
+    # get mood & productivity
+    mood, prod = predict_day()
+
+    # get latest data
+    df = pd.read_csv(os.path.join("data", "daily_data.csv"))
+    row = df.tail(1).iloc[0]
+
+    suggestions = get_activity_suggestions(row, mood, prod, row["stress_index"])
+
+    return {
+        "suggestions": suggestions
+    }
+    
+# ===================== ALERTS ROUTE =====================
+@app.route("/alerts")
+def alerts():
+    from features.alerts import get_alerts
+
+    return {
+        "alerts": get_alerts()
+    }
+    
+# ===================== HEART RATE ROUTE =====================
+
+@app.route("/hr-data")
+def hr_data():
+    import pandas as pd
+    import os
+
+    df = pd.read_csv(os.path.join("data", "hourly_data.csv"))
+
+    # take latest date
+    latest_date = df["date"].max()
+
+    df = df[df["date"] == latest_date]
+
+    # remove missing HR rows
+    df = df.dropna(subset=["avg_hr"])
+
+    result = []
+
+    for _, row in df.iterrows():
+        result.append({
+            "hour": int(row["hour"]),
+            "hr": round(row["avg_hr"], 1)
+        })
+
+    return sorted(result, key=lambda x: x["hour"])
+
+from features.hr_live import get_intraday_hr
+from datetime import datetime
+
+@app.route("/hr-live")
+def hr_live():
+    with open("token.txt", "r") as f:
+        ACCESS_TOKEN = f.read().strip()
+
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    data = get_intraday_hr(ACCESS_TOKEN, today)
+
+    return data
+
+# ===================== HEART RATE MINUTE GRAPH =====================
+@app.route("/hr-minute")
+def hr_minute():
+    from features.hr_live import get_intraday_hr
+    import pandas as pd
+    import os
+
+    # read token
+    with open("token.txt", "r") as f:
+        ACCESS_TOKEN = f.read().strip()
+
+    # 🔥 get latest date from dataset
+    df = pd.read_csv(os.path.join("data", "daily_data.csv"))
+    latest_date = df["date"].max()
+
+    # fetch intraday data for that date
+    data = get_intraday_hr(ACCESS_TOKEN, latest_date)
+
+    result = []
+
+    for i, entry in enumerate(data):
+        result.append({
+            "x": i,
+            "hr": entry["hr"]
+        })
+
+    return result
 
 if __name__ == "__main__":
     app.run(debug=True)

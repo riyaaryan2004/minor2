@@ -14,3 +14,7 @@ __pycache__/
 
 # Ignore CatBoost training artifacts
 Minor_2/catboost_info/
+
+
+venv/
+venv310/

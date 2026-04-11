@@ -1,21 +1,24 @@
-from train_model import (
-    X_train, X_test,
-    y_train_mood, y_test_mood,
-    y_train_prod, y_test_prod,
-    feature_names,
-    w_train   # ✅ added (for consistency, not used)
-)
+import os
+import json
+import joblib
+import numpy as np
+from datetime import datetime
 
 from sklearn.model_selection import cross_val_score, RepeatedKFold
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
-import json
-from datetime import datetime
-import joblib
-import os
-import numpy as np
+from train_model import (
+    X_train, X_test,
+    y_train_mood, y_test_mood,
+    y_train_prod, y_test_prod,
+    feature_names,
+    w_train
+)
 
+
+# ---------------- BASE DIR ----------------
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ---------------- MOOD MODEL ----------------
 
@@ -112,12 +115,11 @@ for name, coef in sorted(
 
 # ---------------- SAVE MODELS ----------------
 
-os.makedirs("saved_models", exist_ok=True)
+model_dir = os.path.join(BASE_DIR, "saved_models")
+os.makedirs(model_dir, exist_ok=True)
 
-joblib.dump(mood_model, "saved_models/linear_regression_mood.pkl")
-joblib.dump(prod_model, "saved_models/linear_regression_productivity.pkl")
-
-print("\nModels saved successfully")
+joblib.dump(mood_model, os.path.join(model_dir, "linear_regression_mood.pkl"))
+joblib.dump(prod_model, os.path.join(model_dir, "linear_regression_productivity.pkl"))
 
 
 # ---------------- SAVE RESULTS ----------------

@@ -50,14 +50,14 @@ def prepare_features(df):
     df["sleep_efficiency"] = df["total_sleep"] / df["sleep_hours"].replace(0, 1)
     df["hr_stress_ratio"] = df["avg_hr_day"] / (df["resting_hr"] + 1)
 
-    df["stress_index"] = np.log1p(df["stress_index"])
+    df["stress_index_log"] = np.log1p(df["stress_index"])
 
     df["steps_scaled"] = df["total_steps"] / 10000
-    df["stress_sleep_interaction"] = df["stress_index"] * df["sleep_deficit"]
+    df["stress_sleep_interaction"] = df["stress_index_log"] * df["sleep_deficit"]
 
     selected_features = [
         "sleep_efficiency",
-        "stress_index",
+        "stress_index_log",   
         "activity_load",
         "hr_stress_ratio",
         "sleep_deficit",
@@ -66,7 +66,6 @@ def prepare_features(df):
     ]
 
     return df, selected_features
-
 
 # -------- RULE ENGINE --------
 def apply_rules(row, mood, prod, raw_stress):
@@ -102,9 +101,9 @@ def apply_rules(row, mood, prod, raw_stress):
 
     return round(mood, 2), round(prod, 2)
 
-def generate_summary(row, mood, prod):
+def generate_summary(row, mood, prod, raw_stress):
     sleep = row["sleep_hours"]
-    stress = row["stress_index"]
+    stress = raw_stress
     steps = row["total_steps"]
 
     if sleep >= 6 and steps >= 5000 and stress < 0.17:
@@ -133,7 +132,7 @@ def predict_day():
     latest = df.tail(1).copy()
     row = latest.iloc[0]
 
-    raw_stress = np.log1p(row["stress_index"])
+    raw_stress = row["stress_index"]
     
     latest, selected_features = prepare_features(latest)
 
@@ -154,7 +153,7 @@ def predict_day():
     print("Productivity Score:", prod)
     print("Productivity Meaning:", prod_label(prod))
 
-    suggestions = get_activity_suggestions(row, mood, prod)
+    suggestions = get_activity_suggestions(row, mood, prod, raw_stress)
 
     print("\nKey Metrics:")
     print(f"Sleep: {round(row['sleep_hours'],1)} hrs | "
@@ -169,7 +168,7 @@ def predict_day():
         for s in suggestions[:3]:
             print("-", s)
             
-    print("\nInsight:", generate_summary(row, mood, prod))
+    print("\nInsight:", generate_summary(row, mood, prod, raw_stress))
 
     return mood, prod
 
@@ -191,7 +190,7 @@ def evaluate_last_days(n=7):
         row_df = last_days.iloc[i:i+1].copy()
         row = row_df.iloc[0]
 
-        raw_stress = np.log1p(row["stress_index"])
+        raw_stress = row["stress_index"]
 
         row_df, selected_features = prepare_features(row_df)
 

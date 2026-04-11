@@ -180,3 +180,10 @@ python movie_recommendor.py
 ## 📌 Note
 
 This project is built for academic purposes and demonstrates a complete ML pipeline from data collection to deployment.
+
+
+## Contributors
+
+Gaurangi Agarwal  
+Chhavi  
+Riya Aryan  

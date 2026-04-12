@@ -72,6 +72,7 @@ Minor_2/catboost_info/
 !Minor_1/data/daily_data.csv
 !Minor_1/data/hourly_data.csv
 !Minor_1/data/evaluation_results.csv
+!Minor_2/final_dataset.csv
 
 # ========================
 # Misc

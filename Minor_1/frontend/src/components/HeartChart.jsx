@@ -32,7 +32,7 @@ function HeartChart({ data }) {
         spanGaps: true, // connect missing points
         fill: false,
 
-        borderColor: "#5fa077",         // 🔥 FIX
+        borderColor: "#5fa077",        
         backgroundColor: "#22c55e",
         pointRadius: 2,
         pointBackgroundColor: "#77be91",
@@ -42,7 +42,7 @@ function HeartChart({ data }) {
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false, // 🔥 FIX stretch issue
+    maintainAspectRatio: false, 
     plugins: {
       legend: {
         labels: {

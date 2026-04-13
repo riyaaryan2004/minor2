@@ -16,7 +16,7 @@ function HeartChartDetailed({ data }) {
   }
 
   const chartData = {
-    // 🔥 KEEP raw minute labels (0–1440)
+    // KEEP raw minute labels (0–1440)
     labels: data.map((d) => d.x),
 
     datasets: [

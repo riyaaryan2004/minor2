@@ -79,3 +79,5 @@ Minor_2/catboost_info/
 # ========================
 coverage/
 .vscode/
+venv/
+venv310/

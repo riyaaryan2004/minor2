@@ -1,0 +1,84 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* 🔥 Heading */
+.heading {
+  font-size: 24px;
+  font-weight: 700;
+  color: #f87171;
+
+  text-shadow: 0 0 10px rgba(248,113,113,0.4);
+}
+
+/* 🔥 Alert box */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px 16px;
+  border-radius: 14px;
+
+  font-size: 15px;
+
+  background: linear-gradient(
+    to right,
+    rgba(239,68,68,0.15),
+    rgba(239,68,68,0.05)
+  );
+
+  border-left: 4px solid #ef4444;
+
+  transition: all 0.25s ease;
+}
+
+/* Hover */
+.alert:hover {
+  transform: translateX(6px);
+  box-shadow: 0 8px 20px rgba(239,68,68,0.2);
+}
+
+/* Icon */
+.icon {
+  font-size: 18px;
+}
+
+/* Empty */
+.empty {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* 🔴 Danger */
+.danger {
+  background: linear-gradient(
+    to right,
+    rgba(239,68,68,0.15),
+    rgba(239,68,68,0.05)
+  );
+  border-left: 4px solid #ef4444;
+}
+
+/* 🟢 Normal */
+.normal {
+  background: linear-gradient(
+    to right,
+    rgba(34,197,94,0.15),
+    rgba(34,197,94,0.05)
+  );
+  border-left: 4px solid #22c55e;
+}
+
+/* 🔥 Bigger text */
+.alert {
+  font-size: 17px;
+  font-weight: 500;
+}
+
+/* Icon bigger */
+.icon {
+  font-size: 20px;
+}

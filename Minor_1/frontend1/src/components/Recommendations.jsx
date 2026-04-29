@@ -4,16 +4,16 @@ import styles from "./Recommendations.module.css";
 import Card from "./Card";
 
 function Recommendations() {
-  const [movies, setMovies] = useState({});
-  const [activities, setActivities] = useState({});
+  const [movies, setMovies] = useState([]);
+  const [activities, setActivities] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       const movieData = await getMovies();
       const activityData = await getActivities();
 
-      setMovies(movieData || {});
-      setActivities(activityData || {});
+      setMovies(movieData?.movies || []);
+      setActivities(activityData?.suggestions || []);
     };
 
     fetchData();
@@ -30,26 +30,22 @@ function Recommendations() {
           <div className={styles.section}>
             <h3>🎬 Movies</h3>
 
-            {movies.movies?.length > 0 ? (
-              <>
-                <p>{movies.why}</p>
+            {movies.length > 0 ? (
+              <div className={styles.grid}>
+                {movies.slice(0, 4).map((m, i) => (
+                  <div key={i} className={styles.card}>
+                    <strong>{m.title}</strong>
 
-                <div className={styles.grid}>
-                  {movies.movies.slice(0, 4).map((m, i) => (
-                    <div key={i} className={styles.card}>
-                      <strong>{m.title}</strong>
+                    {m.release_date && (
+                      <p className={styles.meta}>📅 {m.release_date}</p>
+                    )}
 
-                      {m.release_date && (
-                        <p className={styles.meta}>📅 {m.release_date}</p>
-                      )}
-
-                      {m.vote_average && (
-                        <p className={styles.rating}>⭐ {m.vote_average}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </>
+                    {m.vote_average && (
+                      <p className={styles.rating}>⭐ {m.vote_average}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
             ) : (
               <p className={styles.empty}>No movies available</p>
             )}
@@ -63,16 +59,14 @@ function Recommendations() {
           <div className={styles.section}>
             <h3>🏃 Activity Suggestions</h3>
 
-            {activities.suggestion ? (
-              <>
-                <div className={styles.activityCard}>
-                  {activities.suggestion}
-                </div>
-
-                <p style={{ opacity: 0.7 }}>
-                  {activities.why}
-                </p>
-              </>
+            {activities.length > 0 ? (
+              <div className={styles.activities}>
+                {activities.slice(0, 4).map((a, i) => (
+                  <div key={i} className={styles.activityCard}>
+                    {a}
+                  </div>
+                ))}
+              </div>
             ) : (
               <p className={styles.empty}>No suggestions available</p>
             )}

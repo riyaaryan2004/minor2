@@ -123,8 +123,8 @@ def generate_summary(row, mood, prod, raw_stress):
 # -------- MAIN FUNCTION --------
 def predict_day():
 
-    mood_model = joblib.load(os.path.join(BASE_DIR, "saved_models", "lightgbm_mood.pkl"))
-    prod_model = joblib.load(os.path.join(BASE_DIR, "saved_models", "lightgbm_productivity.pkl"))
+    mood_model = joblib.load(os.path.join(BASE_DIR, "saved_models", "random_forest_mood.pkl"))
+    prod_model = joblib.load(os.path.join(BASE_DIR, "saved_models", "random_forest_productivity.pkl"))
     scaler = joblib.load(os.path.join(BASE_DIR, "saved_models", "scaler.pkl"))
 
     df = pd.read_csv(os.path.join(BASE_DIR, "data", "daily_data.csv"))

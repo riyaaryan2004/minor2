@@ -1,0 +1,111 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 🔥 Heading */
+.heading {
+  font-size: 26px;   /* 🔥 increased */
+  font-weight: 700;
+
+  background: linear-gradient(to right, #60a5fa, #22d3ee);
+  -webkit-background-clip: text;
+  color: transparent;
+
+  text-shadow: 0 0 10px rgba(96,165,250,0.4);
+}
+
+/* Section */
+.section h3 {
+  margin-bottom: 12px;
+  font-size: 20px;   /* ⬆️ from 18 → 20 */
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+/* 🔥 Movie grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* 🔥 Movie card */
+.card {
+  padding: 16px;
+  border-radius: 14px;
+
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+
+  transition: all 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px) scale(1.02);
+  background: rgba(59,130,246,0.15);
+  box-shadow: 0 10px 25px rgba(59,130,246,0.2);
+}
+
+/* 🔥 Movie title */
+.card strong {
+  font-size: 18px;   /* ⬆️ from 16 → 18 */
+  color: #f8fafc;
+}
+
+/* Meta */
+.meta {
+  font-size: 14px;   /* ⬆️ from 13 → 14 */
+  margin-top: 6px;
+  color: #94a3b8;
+}
+
+/* 🔥 Rating */
+.rating {
+  margin-top: 6px;
+  font-size: 15px;   /* ⬆️ from 14 → 15 */
+  font-weight: 600;
+  color: #facc15;
+}
+
+/* 🔥 Activities */
+.activities {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activityCard {
+  padding: 16px;
+  border-radius: 12px;
+
+  font-size: 17px;   /* ⬆️ from 15 → 17 */
+  font-weight: 500;
+
+  background: linear-gradient(
+    to right,
+    rgba(34,197,94,0.15),
+    rgba(34,197,94,0.05)
+  );
+
+  border-left: 4px solid #22c55e;
+
+  transition: all 0.25s ease;
+}
+
+.activityCard:hover {
+  transform: translateX(6px);
+  box-shadow: 0 8px 20px rgba(34,197,94,0.2);
+}
+
+/* Empty */
+.empty {
+  opacity: 0.6;
+  font-style: italic;
+}
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}

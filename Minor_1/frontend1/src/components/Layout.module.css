@@ -1,0 +1,92 @@
+/* WRAPPER */
+.wrapper {
+  position: relative;
+  min-height: 100vh;
+  background: #020617;
+  color: #e2e8f0;
+}
+
+/* 🔥 BACKGROUND IMAGE */
+.wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+ 
+  background:
+    linear-gradient(rgba(2,6,23,0.75), rgba(2,6,23,0.9)),
+    url("watch.jpg");
+
+  background-size: cover;
+  background-position: center;
+  opacity: 0.4;
+
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 🔥 NAVBAR */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 17px 30px;
+
+  background: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(10px);
+
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+/* LOGO */
+.logo {
+  font-size: 26px;
+  font-weight: 600;
+
+  background: linear-gradient(to right, #a41717, #22d3ee);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* NAV LINKS */
+.navLinks {
+  display: flex;
+  gap: 25px;
+}
+
+.navLinks a {
+  color: #94a3b8;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 20px;
+  transition: 0.2s;
+}
+
+.navLinks a:hover {
+  color: #38bdf8;
+}
+
+/* ACTIVE */
+.active {
+  color: #60a5fa !important;
+  text-shadow: 0 0 6px rgba(96,165,250,0.6);
+}
+
+/* MAIN */
+.main {
+  display: flex;
+  justify-content: center;
+  padding: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+/* CONTENT WIDTH FIX */
+.content {
+  width: 100%;
+  max-width: 1200px;
+}

@@ -22,7 +22,16 @@ function Alerts() {
 
         {alerts.length > 0 ? (
           alerts.map((a, i) => {
-            const isNormal = a.toLowerCase().includes("normal");
+            // 🔥 safety (no logic change)
+            if (!a || typeof a !== "object") {
+              return (
+                <div key={i} className={styles.alert}>
+                  <span>{a}</span>
+                </div>
+              );
+            }
+
+            const isNormal = a.issue === "Normal";
 
             return (
               <div
@@ -34,7 +43,12 @@ function Alerts() {
                 <span className={styles.icon}>
                   {isNormal ? "✅" : "⚠️"}
                 </span>
-                <span>{a}</span>
+
+                <div>
+                  <strong>{a.issue}</strong>
+                  <p>{a.why}</p>
+                  <p style={{ opacity: 0.7 }}>{a.action}</p>
+                </div>
               </div>
             );
           })

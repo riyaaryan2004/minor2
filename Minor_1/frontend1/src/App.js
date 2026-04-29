@@ -4,6 +4,8 @@ import Dashboard from "./components/Dashboard";
 import Recommendations from "./components/Recommendations";
 import Alerts from "./components/Alerts";
 import About from "./components/About";
+import Demo from "./components/Demo";
+
 function App() {
   return (
     <Router>
@@ -23,6 +25,7 @@ function App() {
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/about" element={<About />} />
+            <Route path="/demo" element={<Demo />} />
           </Routes>
         </div>
       </Layout>

@@ -388,20 +388,125 @@ def predict():
     import pandas as pd
     import os
 
-    result = predict_day()
+    mood, prod = predict_day()
 
-    # unpack tuple
-    mood, prod = result
-
-    # read latest data (for stress & sleep)
     df = pd.read_csv(os.path.join("data", "daily_data.csv"))
-    latest = df.tail(1).iloc[0]
+    latest = df.iloc[-1]
 
+    sleep = latest["sleep_hours"]
+    stress = latest["stress_index"]
+    steps = latest["total_steps"]
+    resting = latest["resting_hr"]
+    avg_hr = latest["avg_hr_day"]
+
+    # ===================== 1. TODAY INSIGHT =====================
+    if stress > 0.18:
+        summary = "Your body is under noticeable stress today."
+    elif sleep < 5:
+        summary = "Your recovery is low due to insufficient sleep."
+    else:
+        summary = "Your overall condition looks fairly stable today."
+
+    # ===================== 2. METRICS =====================
+    metrics = {
+        "steps": int(steps),
+        "avg_hr": round(avg_hr, 1),
+        "resting_hr": int(resting),
+        "sleep": round(sleep, 2),
+        "stress": round(stress, 3)   
+    }
+
+    # ===================== 3. WHAT IT MEANS =====================
+    meaning = []
+
+    # Heart rate
+    if avg_hr > resting + 10:
+        meaning.append("Heart rate is elevated compared to your baseline, indicating internal stress or fatigue.")
+    else:
+        meaning.append("Heart rate is within a normal range.")
+
+    # Sleep
+    if sleep < 5:
+        meaning.append("Sleep duration is low, which reduces recovery and focus.")
+    else:
+        meaning.append("Sleep is within a reasonable range for recovery.")
+
+    # Steps
+    if steps < 3000:
+        meaning.append("Low activity may reduce energy levels and natural stress regulation.")
+    else:
+        meaning.append("Activity level is helping maintain energy balance.")
+
+    # ===================== 4. WHY ACTION =====================
+    if stress > 0.18 and sleep < 5:
+        reasoning = "High stress combined with low sleep means your body is not in a recovery state."
+    elif stress > 0.18:
+        reasoning = "Elevated stress suggests your body needs regulation and rest."
+    elif sleep < 5:
+        reasoning = "Low sleep suggests reduced recovery, so energy levels may drop."
+    else:
+        reasoning = "Your metrics are relatively balanced."
+
+    # ===================== 5. ACTIVITY =====================
+    if stress > 0.18:
+        activity = "Take a 15–20 min walk and keep workload light."
+        activity_why = "Light movement helps reduce stress and stabilizes heart rate without overloading your body."
+    elif sleep < 5:
+        activity = "Keep tasks light and prioritize recovery today."
+        activity_why = "Low sleep reduces recovery capacity, so avoiding overload prevents burnout."
+    elif steps < 3000:
+        activity = "Increase movement slightly — even a short walk will help."
+        activity_why = "Movement improves circulation, boosts mood, and regulates stress."
+    else:
+        activity = "Maintain your current routine."
+        activity_why = "Your body is already in a stable state."
+
+    # ===================== 6. MOVIE WHY =====================
+    if mood < 4:
+        movie_why = "Low mood detected — light or uplifting content can help improve emotional state."
+    elif stress > 0.18:
+        movie_why = "High stress — calming content helps reduce mental load."
+    else:
+        movie_why = "Balanced state — entertainment can be used for relaxation."
+
+    # ===================== 7. TRENDS =====================
+    trends = {}
+
+    if len(df) >= 2:
+        prev = df.iloc[-2]
+
+        def trend(val, unit=""):
+            arrow = "↑" if val > 0 else "↓" if val < 0 else "→"
+            return f"{arrow} {round(abs(val),2)}{unit}"
+
+        trends = {
+            "sleep": trend(sleep - prev["sleep_hours"], " hrs"),
+            "stress": trend(stress - prev["stress_index"]),
+            "steps": trend(steps - prev["total_steps"])
+        }
+    else:
+        trends = {
+            "sleep": "No data",
+            "stress": "No data",
+            "steps": "No data"
+        }
+
+    # ===================== FINAL RESPONSE =====================
     return {
-        "stress": round(latest["stress_index"], 3),
-        "productivity": round(prod, 2),
-        "sleep": round(latest["sleep_hours"], 2),
-        "mood": round(mood, 2)
+        "today_insight": summary,
+        "metrics": metrics,
+        "meaning": meaning,
+        "reasoning": reasoning,
+        "activity": {
+            "suggestion": activity,
+            "why": activity_why
+        },
+        "movie": {
+            "why": movie_why
+        },
+        "trends": trends,
+        "mood": round(mood, 2),
+        "productivity": round(prod, 2)
     }
     
 # ===================== MOVIES ROUTE =====================
@@ -410,15 +515,25 @@ def movies():
     from features.predict_day import predict_day
     from features.movie_recommendor import recommend_movies
 
-    # get mood & productivity
     mood, prod = predict_day()
 
     movies = recommend_movies()
 
+    # reasoning
+    if mood < 4:
+        reason = "Your mood is low, so uplifting or light content can help improve emotional state."
+    elif prod < 4:
+        reason = "Low productivity suggests mental fatigue, so light entertainment helps recovery."
+    elif mood >= 7 and prod >= 7:
+        reason = "High energy state — engaging content matches your focus."
+    else:
+        reason = "Balanced state — movies can be used for relaxation."
+
     return {
+        "why": reason,
         "movies": movies
     }
-
+    
 # ===================== ACTIVITY ROUTE =====================
 @app.route("/activity")
 def activity():
@@ -427,26 +542,77 @@ def activity():
     import pandas as pd
     import os
 
-    # get mood & productivity
     mood, prod = predict_day()
 
-    # get latest data
     df = pd.read_csv(os.path.join("data", "daily_data.csv"))
     row = df.tail(1).iloc[0]
 
     suggestions = get_activity_suggestions(row, mood, prod, row["stress_index"])
 
+    # pick top suggestion
+    suggestion = suggestions[0] if suggestions else "Maintain your routine."
+
+    # reasoning (simple but powerful)
+    if row["stress_index"] > 0.18:
+        why = "Your stress is high, so light activity helps regulate it."
+    elif row["sleep_hours"] < 5:
+        why = "Low sleep means your body needs recovery, not overload."
+    elif row["total_steps"] < 3000:
+        why = "Low movement reduces energy, so activity helps boost it."
+    else:
+        why = "Your metrics are stable, so maintaining routine is ideal."
+
     return {
-        "suggestions": suggestions
+        "suggestion": suggestion,
+        "why": why
     }
-    
+       
 # ===================== ALERTS ROUTE =====================
 @app.route("/alerts")
 def alerts():
     from features.alerts import get_alerts
+    import pandas as pd
+    import os
+
+    df = pd.read_csv(os.path.join("data", "daily_data.csv"))
+    row = df.tail(1).iloc[0]
+
+    alerts = get_alerts()
+
+    detailed_alerts = []
+
+    for alert in alerts:
+
+        if "significantly elevated" in alert:
+            detailed_alerts.append({
+                "issue": "High Heart Rate",
+                "why": "Your average heart rate is much higher than your resting level, indicating strong stress or fatigue.",
+                "action": "Avoid intense activity and focus on recovery (rest, hydration, light movement)."
+            })
+
+        elif "Irregular heart rate" in alert:
+            detailed_alerts.append({
+                "issue": "Irregular Heart Pattern",
+                "why": "High heart rate variability suggests unstable physiological state.",
+                "action": "Take it easy and avoid overexertion today."
+            })
+
+        elif "Slightly elevated" in alert:
+            detailed_alerts.append({
+                "issue": "Slightly Elevated Heart Rate",
+                "why": "Your heart rate is above normal, possibly due to stress or low recovery.",
+                "action": "Take short breaks and avoid continuous workload."
+            })
+
+        else:
+            detailed_alerts.append({
+                "issue": "Normal",
+                "why": "Your heart rate is within a healthy range.",
+                "action": "Maintain your routine."
+            })
 
     return {
-        "alerts": get_alerts()
+        "alerts": detailed_alerts
     }
     
 # ===================== HEART RATE ROUTE =====================

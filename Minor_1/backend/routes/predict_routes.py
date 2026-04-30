@@ -21,12 +21,7 @@ def predict():
     row = df.tail(1).iloc[0]
 
     # ✅ pass row to ML (important)
-    mood, prod = predict_day(row)
+    result = predict_day(row)    
     print("Requested date:", date)
     print("Available dates:", df["date"].unique())
-    return {
-        "stress": round(row["stress_index"], 3),
-        "productivity": round(prod, 2),
-        "sleep": round(row["sleep_hours"], 2),
-        "mood": round(mood, 2)
-    }
+    return result

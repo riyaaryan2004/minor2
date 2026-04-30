@@ -100,14 +100,26 @@ def alerts():
 @data_bp.route("/movies")
 def movies():
     date = _clean_date(request.args.get("date"))
+    row = _get_daily_row(date)
+
+    if row is None:
+        df = pd.read_csv(os.path.join(DATA_DIR, "daily_data.csv"))
+        
+        if df.empty:
+            return {"movies": []}
+        
+        # fallback to latest available data
+        row = df.tail(1).iloc[0]
 
     try:
         import io
         from contextlib import redirect_stdout
 
         with redirect_stdout(io.StringIO()):
-            movies_list = recommend_movies(date)
+            movies_list = recommend_movies(row)
 
         return {"movies": movies_list}
-    except ValueError:
-        return {"error": "No data for selected date"}, 404
+
+    except Exception as e:
+        print("Movie error:", e)
+        return {"movies": []}

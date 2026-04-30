@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np 
 
 from ml.features.activity_suggestion import get_activity_suggestions
-
+from ml.features.history_insights import generate_history_insights
 import os
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -43,7 +43,50 @@ def prod_label(score):
     }
     return mapping.get(score,"Unknown")
 
+# -------- NEW: DAY TYPE --------
+def get_day_type(row, mood, prod, stress):
+    if row["sleep_hours"] < 5 and stress > 0.15:
+        return "Recovery Needed"
+    elif mood >= 7 and prod >= 7:
+        return "High Performance Day"
+    elif mood >= 5 and prod >= 5:
+        return "Balanced Day"
+    else:
+        return "Low Energy Day"
+    
+# -------- NEW: ROOT CAUSE --------
+def get_root_cause(row, stress):
+    causes = []
+    if row["sleep_hours"] < 5:
+        causes.append("low sleep")
+    if stress > 0.18:
+        causes.append("high stress")
+    if row["total_steps"] < 3000:
+        causes.append("low activity")
+    return ", ".join(causes) if causes else "no major issues"
 
+# -------- NEW: PRIMARY ACTION --------
+def get_primary_action(row, stress):
+    if stress > 0.18:
+        return "Focus on relaxation and avoid high-pressure tasks."
+    if row["sleep_hours"] < 5:
+        return "Take a lighter workload and prioritize recovery."
+    if row["total_steps"] < 3000:
+        return "Increase physical activity with a short walk."
+    return "Maintain your current routine."
+
+
+# -------- NEW: DAILY GOAL --------
+def get_daily_goal(df, row):
+    avg_steps = df['total_steps'].mean()
+    target = int(avg_steps + 500)
+
+    if row['total_steps'] >= avg_steps:
+        return f"Maintain activity above {int(avg_steps)} steps"
+    else:
+        return f"Reach at least {target} steps today"
+    
+    
 # -------- COMMON FEATURE ENGINEERING --------
 def prepare_features(df):
     df = df.copy()
@@ -147,64 +190,57 @@ def predict_day(row):
     print("\n" + "="*40)
     print("\n===== DAILY HEALTH INSIGHT =====\n")
 
-    print("Mood Score:", mood)
-    print("Mood Meaning:", mood_label(mood))
-
-    print("Productivity Score:", prod)
-    print("Productivity Meaning:", prod_label(prod))
-
-    suggestions = get_activity_suggestions(row, mood, prod, raw_stress)
+    print(get_day_type(row, mood, prod, raw_stress))
+    print("\nRoot Cause:", get_root_cause(row, raw_stress))
 
     print("\nKey Metrics:")
     print(f"Sleep: {round(row['sleep_hours'],1)} hrs | "
           f"Steps: {int(row['total_steps'])} | "
           f"Stress: {round(raw_stress,3)}")
 
-    print("\n--- Activity Suggestions ---")
+    print("\n🎯 Primary Action:")
+    print("-", get_primary_action(row, raw_stress))
 
+    suggestions = get_activity_suggestions(row, mood, prod, raw_stress)
+
+    print("\n💡 Supporting Actions:")
     if not suggestions:
-        print("- Your metrics look balanced. Maintain current routine.")
+        print("- Maintain your current routine.")
     else:
-        for s in suggestions[:3]:
+        for s in suggestions[:2]:
             print("-", s)
-            
+
+    print("\n📊 History Insight:")
+    history_insights = generate_history_insights(
+        os.path.join(BASE_DIR, "data", "daily_data.csv")
+    )
+    if history_insights:
+        for ins in history_insights[:2]:
+            print("-", ins)
+
+    df_full = pd.read_csv(os.path.join(BASE_DIR, "data", "daily_data.csv"))
+    print("\n🎯 Daily Goal:")
+    print("-", get_daily_goal(df_full, row))
+
     print("\nInsight:", generate_summary(row, mood, prod, raw_stress))
 
-    return mood, prod
-
-
-# -------- EVALUATION --------
-def evaluate_last_days(n=7):
-
-    mood_model = joblib.load(os.path.join(BASE_DIR, "saved_models", "lightgbm_mood.pkl"))
-    prod_model = joblib.load(os.path.join(BASE_DIR, "saved_models", "lightgbm_productivity.pkl"))
-    scaler = joblib.load(os.path.join(BASE_DIR, "saved_models", "scaler.pkl"))
-
-    df = pd.read_csv(os.path.join(BASE_DIR, "data", "daily_data.csv"))
-
-    last_days = df.tail(n).copy()
-
-    print("\n===== LAST", n, "DAYS EVALUATION =====\n")
-
-    for i in range(len(last_days)):
-        row_df = last_days.iloc[i:i+1].copy()
-        row = row_df.iloc[0]
-
-        raw_stress = row["stress_index"]
-
-        row_df, selected_features = prepare_features(row_df)
-
-        X = scaler.transform(row_df[selected_features])
-        X = pd.DataFrame(X, columns=selected_features)
-
-        mood_pred = mood_model.predict(X)[0]
-        prod_pred = prod_model.predict(X)[0]
-
-        mood_pred, prod_pred = apply_rules(row, mood_pred, prod_pred, raw_stress)
-
-        print(f"\nDate: {row['date']}")
-        print(f"Pred Mood: {mood_pred} | Actual: {row['mood_score']}")
-        print(f"Pred Prod: {prod_pred} | Actual: {row['productivity_score']}")
+    return {
+        "mood": mood,
+        "productivity": prod,
+        "day_type": get_day_type(row, mood, prod, raw_stress),
+        "root_cause": get_root_cause(row, raw_stress),
+        "primary_action": get_primary_action(row, raw_stress),
+        "suggestions": suggestions,
+        "history_insights": generate_history_insights(
+            os.path.join(BASE_DIR, "data", "daily_data.csv")
+        ),
+        "daily_goal": get_daily_goal(
+            pd.read_csv(os.path.join(BASE_DIR, "data", "daily_data.csv")),
+            row
+        ),
+        "sleep": round(row["sleep_hours"], 2),
+        "stress": round(row["stress_index"], 3)
+    }
         
 
 if __name__ == "__main__":

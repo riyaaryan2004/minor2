@@ -203,8 +203,12 @@ def decide_genre(mood_state, prod_state):
     return GENRES["comedy"], "default"
 
 # 6. MAIN PIPELINE
-def recommend_movies(date=None):
-    mood, prod = get_today_scores(date)
+def recommend_movies(row):
+    from ml.features.predict_day import predict_day
+    result = predict_day(row)
+
+    mood = result["mood"]
+    prod = result["productivity"]
 
     print("\n--- Movie Recommendation Engine ---")
 
@@ -288,4 +292,13 @@ def recommend_movies(date=None):
 
 # RUN
 if __name__ == "__main__":
-    recommend_movies()
+    import pandas as pd
+
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    df = pd.read_csv(os.path.join(base_dir, "data", "daily_data.csv"))
+
+    if df.empty:
+        print("No data available")
+    else:
+        row = df.tail(1).iloc[0]
+        recommend_movies(row)

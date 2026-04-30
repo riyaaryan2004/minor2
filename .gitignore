@@ -12,6 +12,7 @@ __pycache__/
 node_modules/
 Minor_1/node_modules/
 Minor_1/frontend/node_modules/
+Minor_1/frontend1/node_modules/
 
 # ========================
 # Build / Production

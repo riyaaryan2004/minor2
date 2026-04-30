@@ -4,16 +4,18 @@ import {
   CategoryScale,
   LinearScale,
   PointElement,
+  Tooltip,
+  Filler,
 } from "chart.js";
 
 import { Line } from "react-chartjs-2";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Filler);
 
 function HeartChartDetailed({ data }) {
-  if (!data || data.length === 0) {
+  if (!Array.isArray(data) || data.length === 0) {
     return (
-      <p style={{ opacity: 0.6, fontStyle: "italic" }}>
+      <p style={{ opacity: 0.7, fontStyle: "italic" }}>
         No detailed HR data available
       </p>
     );
@@ -23,14 +25,14 @@ function HeartChartDetailed({ data }) {
     labels: data.map((d) => d.x),
     datasets: [
       {
-        label: "Heart Rate (Minute-Level)",
+        label: "Heart Rate",
         data: data.map((d) => d.hr),
-        borderColor: "#38bdf8",
+        borderColor: "#a78bfa",
         borderWidth: 1.5,
         pointRadius: 0,
         tension: 0,
         fill: true,
-        backgroundColor: "rgba(56,189,248,0.08)",
+        backgroundColor: "rgba(167, 139, 250, 0.1)",
       },
     ],
   };
@@ -38,12 +40,20 @@ function HeartChartDetailed({ data }) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "rgba(15, 23, 42, 0.95)",
+        borderColor: "rgba(148, 163, 184, 0.2)",
+        borderWidth: 1,
+      },
+    },
     scales: {
       x: {
         ticks: {
           color: "#94a3b8",
-          autoSkip: false,
+          autoSkip: true,
+          maxTicksLimit: 12,
           callback: function (value) {
             if (value % 60 === 0) {
               return value / 60;
@@ -51,57 +61,20 @@ function HeartChartDetailed({ data }) {
             return "";
           },
         },
-        grid: {
-          color: "rgba(255,255,255,0.05)",
-        },
+        grid: { color: "rgba(148, 163, 184, 0.08)" },
       },
-
       y: {
         ticks: { color: "#94a3b8" },
         min: 40,
         max: 160,
-        grid: {
-          color: "rgba(255,255,255,0.05)",
-        },
-      },
-    },
-
-    plugins: {
-      legend: {
-        labels: { color: "#cbd5f5" },
+        grid: { color: "rgba(148, 163, 184, 0.08)" },
       },
     },
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-      }}
-    >
-      <h2
-        style={{
-          fontSize: "18px",
-          fontWeight: "600",
-          color: "#e2e8f0",
-        }}
-      >
-        📈 Detailed Heart Rate
-      </h2>
-
-      <div
-        style={{
-          height: "300px",
-          padding: "15px",
-          borderRadius: "14px",
-          background: "rgba(255, 255, 255, 0.03)",
-          border: "1px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        <Line data={chartData} options={options} />
-      </div>
+    <div style={{ height: "300px" }}>
+      <Line data={chartData} options={options} />
     </div>
   );
 }

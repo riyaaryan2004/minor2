@@ -1,16 +1,15 @@
 .card {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 18px;
-  padding: 20px;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-
-  transition: all 0.25s ease;
+  border-radius: 8px;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(16px);
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
-/* Hover effect */
 .card:hover {
-  transform: translateY(-4px);
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  border-color: rgba(103, 232, 249, 0.36);
+  background: rgba(15, 23, 42, 0.88);
 }

@@ -6,11 +6,18 @@ from backend.services.token_service import get_token
 from ml.features.hr_live import get_intraday_hr
 hr_bp = Blueprint("hr", __name__)
 
+def _clean_date(date):
+    if not date or date in {"undefined", "null"}:
+        return None
+
+    return str(date).strip()
+
 @hr_bp.route("/hr-data")
 def hr_data():
-    date = request.args.get("date")
+    date = _clean_date(request.args.get("date"))
 
     df = pd.read_csv(os.path.join(DATA_DIR, "hourly_data.csv"))
+    df["date"] = df["date"].astype(str).str.strip()
 
     if date:
         df = df[df["date"] == date]
@@ -27,7 +34,7 @@ def hr_data():
 
 @hr_bp.route("/hr-minute")
 def hr_minute():
-    date = request.args.get("date")
+    date = _clean_date(request.args.get("date"))
     token = get_token()
 
     if not token:

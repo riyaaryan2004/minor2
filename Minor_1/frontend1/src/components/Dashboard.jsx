@@ -65,6 +65,27 @@ function Dashboard() {
     fetchData();
   }, [fetchData]);
 
+  const dateActions = (
+    <div className={styles.actions}>
+      <label className={styles.dateControl}>
+        <span>Date</span>
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+        />
+      </label>
+
+      <button
+        className={styles.button}
+        onClick={() => fetchData(true)}
+        disabled={syncing}
+      >
+        {syncing ? "Syncing..." : "Refresh Data"}
+      </button>
+    </div>
+  );
+
   if (loading && !data) {
     return (
       <div className={styles.statePanel}>
@@ -76,8 +97,12 @@ function Dashboard() {
 
   if (!data || data.error) {
     return (
-      <div className={styles.statePanel}>
-        No data available for this date.
+      <div className={styles.container}>
+        <div className={styles.statePanel}>
+          No data available for this date.
+        </div>
+        {dateActions}
+        {syncError && <div className={styles.errorPanel}>{syncError}</div>}
       </div>
     );
   }
@@ -108,24 +133,7 @@ function Dashboard() {
           <p>Live body signals</p>
         </div>
 
-        <div className={styles.actions}>
-          <label className={styles.dateControl}>
-            <span>Date</span>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-            />
-          </label>
-
-          <button
-            className={styles.button}
-            onClick={() => fetchData(true)}
-            disabled={syncing}
-          >
-            {syncing ? "Syncing..." : "Refresh Data"}
-          </button>
-        </div>
+        {dateActions}
       </section>
 
       <div className={styles.statusBar}>

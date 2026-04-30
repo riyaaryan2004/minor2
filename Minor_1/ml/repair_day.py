@@ -47,9 +47,32 @@ def fetch_fitbit_json(url, label, headers):
     return data
 
 
+def _parse_date_for_sort(value):
+    try:
+        return datetime.strptime(value, "%Y-%m-%d")
+    except (TypeError, ValueError):
+        return datetime.max
+
+
+def _parse_hour_for_sort(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 99
+
+
+def _clean_csv_value(value):
+    if value is None:
+        return ""
+
+    return str(value).strip()
+
+
 def repair_day(date=None, access_token=None):
     if date is None:
         date = datetime.now().strftime("%Y-%m-%d")
+    else:
+        date = _clean_csv_value(date)
 
     if not access_token:
         raise ValueError("Access token required")
@@ -96,50 +119,58 @@ def repair_day(date=None, access_token=None):
 
     hourly_file = os.path.join(DATA_DIR, "hourly_data.csv")
 
-    rows = []
+    rows_by_key = {}
     if os.path.exists(hourly_file):
         with open(hourly_file, "r", newline="") as f:
             reader = csv.reader(f)
             next(reader, None)
             for row in reader:
-                if row and row[0] != date:
-                    rows.append(row)
+                row_date = _clean_csv_value(row[0]) if row else ""
+                if not row_date or row_date == date:
+                    continue
+
+                row[0] = row_date
+                hour = _clean_csv_value(row[1]) if len(row) > 1 else ""
+                rows_by_key[(row_date, hour)] = row
+
+    for hour in range(24):
+        hr_values = hourly_hr.get(hour, [])
+        steps = hourly_steps.get(hour, 0)
+
+        if hr_values:
+            avg_hr = float(np.mean(hr_values))
+            max_hr = int(np.max(hr_values))
+            min_hr = int(np.min(hr_values))
+            hr_std = float(np.std(hr_values))
+        else:
+            avg_hr = ""
+            max_hr = ""
+            min_hr = ""
+            hr_std = ""
+
+        hr_relative = round(avg_hr - resting_hr, 2) if avg_hr != "" else ""
+
+        rows_by_key[(date, str(hour))] = [
+            date,
+            hour,
+            day_of_week,
+            avg_hr if avg_hr == "" else round(avg_hr, 2),
+            max_hr,
+            min_hr,
+            hr_std if hr_std == "" else round(hr_std, 2),
+            steps,
+            hr_relative,
+        ]
+
+    sorted_hourly_rows = sorted(
+        rows_by_key.values(),
+        key=lambda row: (_parse_date_for_sort(row[0]), _parse_hour_for_sort(row[1])),
+    )
 
     with open(hourly_file, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(HOURLY_HEADER)
-
-        for row in rows:
-            writer.writerow(row)
-
-        for hour in range(24):
-            hr_values = hourly_hr.get(hour, [])
-            steps = hourly_steps.get(hour, 0)
-
-            if hr_values:
-                avg_hr = float(np.mean(hr_values))
-                max_hr = int(np.max(hr_values))
-                min_hr = int(np.min(hr_values))
-                hr_std = float(np.std(hr_values))
-            else:
-                avg_hr = ""
-                max_hr = ""
-                min_hr = ""
-                hr_std = ""
-
-            hr_relative = round(avg_hr - resting_hr, 2) if avg_hr != "" else ""
-
-            writer.writerow([
-                date,
-                hour,
-                day_of_week,
-                avg_hr if avg_hr == "" else round(avg_hr, 2),
-                max_hr,
-                min_hr,
-                hr_std if hr_std == "" else round(hr_std, 2),
-                steps,
-                hr_relative,
-            ])
+        writer.writerows(sorted_hourly_rows)
 
     total_steps = sum(hourly_steps.values())
 
@@ -214,7 +245,7 @@ def repair_day(date=None, access_token=None):
 
     daily_file = os.path.join(DATA_DIR, "daily_data.csv")
 
-    existing_rows = []
+    rows_by_date = {}
     existing_mood = ""
     existing_productivity = ""
 
@@ -222,11 +253,16 @@ def repair_day(date=None, access_token=None):
         with open(daily_file, "r", newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                if row.get("date") == date:
-                    existing_mood = row.get("mood_score", "")
-                    existing_productivity = row.get("productivity_score", "")
+                row_date = _clean_csv_value(row.get("date", ""))
+                if row_date == date:
+                    existing_mood = row.get("mood_score", "") or existing_mood
+                    existing_productivity = (
+                        row.get("productivity_score", "") or existing_productivity
+                    )
                     continue
-                existing_rows.append(row)
+                if row_date:
+                    row["date"] = row_date
+                    rows_by_date[row_date] = row
 
     new_daily_row = {
         "date": date,
@@ -253,14 +289,18 @@ def repair_day(date=None, access_token=None):
         "productivity_score": existing_productivity,
     }
 
+    rows_by_date[date] = new_daily_row
+    sorted_daily_rows = [
+        rows_by_date[row_date]
+        for row_date in sorted(rows_by_date, key=_parse_date_for_sort)
+    ]
+
     with open(daily_file, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=DAILY_HEADER)
         writer.writeheader()
 
-        for row in existing_rows:
+        for row in sorted_daily_rows:
             writer.writerow({key: row.get(key, "") for key in DAILY_HEADER})
-
-        writer.writerow(new_daily_row)
 
     return {
         "date": date,

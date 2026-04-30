@@ -70,9 +70,9 @@ Minor_2/catboost_info/
 *.csv
 
 # BUT KEEP IMPORTANT DATASETS
-!Minor_1/data/daily_data.csv
-!Minor_1/data/hourly_data.csv
-!Minor_1/data/evaluation_results.csv
+!Minor_1/ml/data/daily_data.csv
+!Minor_1/ml/data/hourly_data.csv
+!Minor_1/ml/data/evaluation_results.csv
 !Minor_2/final_dataset.csv
 
 # ========================

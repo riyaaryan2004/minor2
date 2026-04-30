@@ -50,7 +50,7 @@ token.txt
 # ML / Model Files
 # ========================
 *.pkl
-Minor_1/models/catboost_info/
+Minor_1/ml/models/catboost_info/
 Minor_2/catboost_info/
 
 # ========================
@@ -61,8 +61,8 @@ Minor_2/catboost_info/
 *.jpeg
 
 # BUT KEEP GRAPHS
-!Minor_1/features/hr_graph/
-!Minor_1/features/hr_graph/*.png
+!Minor_1/ml/features/hr_graph/
+!Minor_1/ml/features/hr_graph/*.png
 
 # ========================
 # Large Data Files

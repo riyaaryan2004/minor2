@@ -7,11 +7,19 @@ from backend.config import DATA_DIR
 
 predict_bp = Blueprint("predict", __name__)
 
+def _clean_date(date):
+    if not date or date in {"undefined", "null"}:
+        return None
+
+    return str(date).strip()
+
 @predict_bp.route("/predict")
 def predict():
-    date = request.args.get("date")
+    date = _clean_date(request.args.get("date"))
 
     df = pd.read_csv(os.path.join(DATA_DIR, "daily_data.csv"))
+    df["date"] = df["date"].astype(str).str.strip()
+
     if date:
         df = df[df["date"] == date]
 

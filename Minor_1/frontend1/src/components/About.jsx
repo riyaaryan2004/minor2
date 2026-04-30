@@ -2,104 +2,85 @@ import Card from "./Card";
 
 function About() {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "32px",
-      }}
-    >
-      {/* Title */}
-      <h1
+    <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+      <section
         style={{
-          fontSize: "36px",   // ⬆️ bigger
-          fontWeight: "700",
-          background: "linear-gradient(to right, #60a5fa, #22d3ee)",
-          WebkitBackgroundClip: "text",
-          color: "transparent",
+          padding: "24px",
+          borderRadius: "8px",
+          border: "1px solid rgba(148, 163, 184, 0.18)",
+          background:
+            "linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(8, 145, 178, 0.25))",
         }}
       >
-        💙 About FitIntel
-      </h1>
-
-      {/* Intro */}
-      <Card>
         <p
           style={{
-            fontSize: "20px",   // ⬇️ balanced (25 was too big)
-            lineHeight: "1.7",
-            color: "#e2e8f0",
+            margin: "0 0 8px",
+            color: "#67e8f9",
+            fontSize: "12px",
+            fontWeight: 800,
+            textTransform: "uppercase",
           }}
         >
-          HealthAI is a smart health monitoring system that analyzes Fitbit data
-          to provide real-time insights about your physical and mental well-being.
-          It helps users stay aware of their health through alerts, activity
-          suggestions, and personalized recommendations.
+          System overview
         </p>
-      </Card>
-
-      {/* Features */}
-      <Card>
-        <h2
-          style={{
-            fontSize: "26px",   // ⬇️ balanced (30 → 26)
-            marginBottom: "16px",
-            color: "#f1f5f9",
-          }}
-        >
-          🚀 Key Features
-        </h2>
-
-        <ul
-          style={{
-            lineHeight: "1.9",
-            fontSize: "18px",   // ⬆️ bigger list text
-            color: "#cbd5f5",
-          }}
-        >
-          <li>📊 Real-time heart rate monitoring</li>
-          <li>🚨 Smart alerts based on health conditions</li>
-          <li>🎬 Movie recommendations based on mood</li>
-          <li>🏃 Activity suggestions for better health</li>
-          <li>📈 Detailed analytics and insights</li>
-        </ul>
-      </Card>
-
-      {/* How it works */}
-      <Card>
-        <h2
-          style={{
-            fontSize: "26px",
-            marginBottom: "16px",
-            color: "#f1f5f9",
-          }}
-        >
-          ⚙️ How It Works
-        </h2>
-
+        <h1 style={{ fontSize: "34px", color: "#f8fafc" }}>About FitIntel</h1>
         <p
           style={{
-            fontSize: "18px",   // ⬆️ bigger
-            lineHeight: "1.7",
-            color: "#cbd5f5",
+            maxWidth: "760px",
+            margin: "10px 0 0",
+            color: "#cbd5e1",
+            lineHeight: 1.65,
           }}
         >
-          The system collects data from Fitbit devices and processes it using
-          machine learning models. Based on your heart rate, stress levels, and
-          activity patterns, it generates alerts and personalized suggestions
-          to improve your daily routine.
+          FitIntel analyzes Fitbit health data and turns heart rate, sleep, activity,
+          stress, mood, and productivity signals into a daily operating dashboard.
         </p>
-      </Card>
+      </section>
 
-      {/* Footer note */}
       <Card>
-        <p
+        <h2 style={{ color: "#f8fafc", fontSize: "20px", marginBottom: "14px" }}>
+          What It Tracks
+        </h2>
+        <div
           style={{
-            fontSize: "17px",
-            opacity: 0.7,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "12px",
           }}
         >
-        Designed and developed with ❤️ for smarter health monitoring.
+          {[
+            "Heart rate trends",
+            "Sleep quality",
+            "Activity load",
+            "Stress signals",
+            "Mood prediction",
+            "Productivity prediction",
+          ].map((item) => (
+            <div
+              key={item}
+              style={{
+                padding: "14px",
+                borderRadius: "8px",
+                background: "rgba(2, 6, 23, 0.35)",
+                border: "1px solid rgba(148, 163, 184, 0.16)",
+                color: "#e2e8f0",
+                fontWeight: 700,
+              }}
+            >
+              {item}
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <h2 style={{ color: "#f8fafc", fontSize: "20px", marginBottom: "10px" }}>
+          How It Works
+        </h2>
+        <p style={{ margin: 0, color: "#cbd5e1", lineHeight: 1.7 }}>
+          The backend syncs Fitbit data into CSV files, machine learning models generate
+          mood and productivity estimates, and the frontend presents the latest health
+          state with alerts, suggestions, recommendations, and heart-rate charts.
         </p>
       </Card>
     </div>

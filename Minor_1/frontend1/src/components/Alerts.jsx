@@ -5,44 +5,54 @@ import Card from "./Card";
 
 function Alerts() {
   const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       const data = await getAlerts();
       setAlerts(data?.alerts || []);
+      setLoading(false);
     };
 
     fetchData();
   }, []);
 
   return (
-    <Card>
-      <div className={styles.container}>
-        <h2 className={styles.heading}>🚨 Alerts</h2>
+    <div className={styles.wrapper}>
+      <section className={styles.header}>
+        <p className={styles.kicker}>Risk monitor</p>
+        <h1>Health Alerts</h1>
+        <p>Latest anomaly checks based on resting heart rate, daily average, and variability.</p>
+      </section>
 
-        {alerts.length > 0 ? (
-          alerts.map((a, i) => {
-            const isNormal = a.toLowerCase().includes("normal");
+      <Card>
+        <div className={styles.container}>
+          {loading ? (
+            <p className={styles.empty}>Checking alerts...</p>
+          ) : alerts.length > 0 ? (
+            alerts.map((alert, index) => {
+              const isNormal = alert.toLowerCase().includes("normal");
 
-            return (
-              <div
-                key={i}
-                className={`${styles.alert} ${
-                  isNormal ? styles.normal : styles.danger
-                }`}
-              >
-                <span className={styles.icon}>
-                  {isNormal ? "✅" : "⚠️"}
-                </span>
-                <span>{a}</span>
-              </div>
-            );
-          })
-        ) : (
-          <p className={styles.empty}>No alerts</p>
-        )}
-      </div>
-    </Card>
+              return (
+                <div
+                  key={index}
+                  className={`${styles.alert} ${isNormal ? styles.normal : styles.danger}`}
+                >
+                  <span className={styles.icon}>{isNormal ? "OK" : "!"}</span>
+                  <div>
+                    <strong>{isNormal ? "Normal range" : "Attention needed"}</strong>
+                    <p>{alert}</p>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className={styles.empty}>No alerts</p>
+          )}
+        </div>
+      </Card>
+    </div>
   );
 }
 

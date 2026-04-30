@@ -4,16 +4,18 @@ import {
   CategoryScale,
   LinearScale,
   PointElement,
+  Tooltip,
+  Filler,
 } from "chart.js";
 
 import { Line } from "react-chartjs-2";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Filler);
 
 function HeartChart({ data }) {
   if (!data || data.length === 0) {
     return (
-      <p style={{ opacity: 0.6, fontStyle: "italic" }}>
+      <p style={{ opacity: 0.7, fontStyle: "italic" }}>
         No heart rate data available
       </p>
     );
@@ -28,17 +30,16 @@ function HeartChart({ data }) {
     labels: fullData.map((d) => d.hour),
     datasets: [
       {
-        label: "Heart Rate (BPM)",
+        label: "Heart Rate",
         data: fullData.map((d) => d.hr),
         borderWidth: 2,
-        tension: 0.4,
+        tension: 0.35,
         spanGaps: true,
         fill: true,
-
-        borderColor: "#22c55e",
-        backgroundColor: "rgba(34,197,94,0.15)",
+        borderColor: "#22d3ee",
+        backgroundColor: "rgba(34, 211, 238, 0.12)",
         pointRadius: 2,
-        pointBackgroundColor: "#4ade80",
+        pointBackgroundColor: "#67e8f9",
       },
     ],
   };
@@ -47,59 +48,30 @@ function HeartChart({ data }) {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        labels: {
-          color: "#cbd5f5",
-        },
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "rgba(15, 23, 42, 0.95)",
+        borderColor: "rgba(148, 163, 184, 0.2)",
+        borderWidth: 1,
       },
     },
     scales: {
       x: {
         ticks: { color: "#94a3b8" },
-        grid: {
-          color: "rgba(255,255,255,0.05)",
-        },
+        grid: { color: "rgba(148, 163, 184, 0.08)" },
       },
       y: {
         ticks: { color: "#94a3b8" },
         min: 40,
         max: 160,
-        grid: {
-          color: "rgba(255,255,255,0.05)",
-        },
+        grid: { color: "rgba(148, 163, 184, 0.08)" },
       },
     },
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-      }}
-    >
-      <h2
-        style={{
-          fontSize: "18px",
-          fontWeight: "600",
-          color: "#e2e8f0",
-        }}
-      >
-        💓 Heart Rate (Summary)
-      </h2>
-
-      <div
-        style={{
-          height: "320px",
-          padding: "15px",
-          borderRadius: "14px",
-          background: "rgba(255, 255, 255, 0.03)",
-          border: "1px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        <Line data={chartData} options={options} />
-      </div>
+    <div style={{ height: "320px" }}>
+      <Line data={chartData} options={options} />
     </div>
   );
 }

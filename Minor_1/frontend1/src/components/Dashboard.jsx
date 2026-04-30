@@ -1,84 +1,182 @@
-import { useEffect, useState } from "react";
-import { getPredictions, getHRData, getHRMinute } from "../api/api";
+import { useCallback, useEffect, useState } from "react";
+import { getPredictions, getHRData, getHRMinute, syncDay } from "../api/api";
 import HeartChart from "./HeartChart";
 import HeartChartDetailed from "./HeartChartDetailed";
 import styles from "./Dashboard.module.css";
 import Card from "./Card";
+
+const formatValue = (value, suffix = "") => {
+  if (value === undefined || value === null || value === "") {
+    return "--";
+  }
+
+  return `${value}${suffix}`;
+};
 
 function Dashboard() {
   const [data, setData] = useState(null);
   const [hrData, setHrData] = useState([]);
   const [hrMinute, setHrMinute] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState("");
+  const [lastUpdated, setLastUpdated] = useState("");
 
-  const fetchData = async () => {
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+
+  const fetchData = useCallback(async (shouldSync = false) => {
+    setSyncError("");
+
+    if (shouldSync) {
+      setSyncing(true);
+      const syncResult = await syncDay(selectedDate);
+      setSyncing(false);
+
+      if (syncResult?.error) {
+        setSyncError(syncResult.message);
+      } else {
+        setLastUpdated(new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }));
+      }
+    }
+
     setLoading(true);
+    const [prediction, hourly] = await Promise.all([
+      getPredictions(selectedDate),
+      getHRData(selectedDate),
+    ]);
 
-    const res = await getPredictions();
-    setData(res);
-
-    const hr = await getHRData();
-    setHrData(hr);
-
-    const minute = await getHRMinute();
-    setHrMinute(minute);
-
+    setData(prediction);
+    setHrData(hourly);
     setLoading(false);
-  };
+
+    setDetailLoading(true);
+    const minute = await getHRMinute(selectedDate);
+    setHrMinute(minute);
+    setDetailLoading(false);
+  }, [selectedDate]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  if (loading) return <p className={styles.loading}>Loading data...</p>;
-  if (!data) return <p className={styles.loading}>Failed to load data</p>;
+  if (loading && !data) {
+    return (
+      <div className={styles.statePanel}>
+        <span className={styles.pulseDot} />
+        Loading health snapshot...
+      </div>
+    );
+  }
+
+  if (!data || data.error) {
+    return (
+      <div className={styles.statePanel}>
+        No data available for this date.
+      </div>
+    );
+  }
+
+  const metrics = [
+    { label: "Stress", value: formatValue(data.stress), tone: "amber" },
+    { label: "Sleep", value: formatValue(data.sleep, " hrs"), tone: "blue" },
+    { label: "Productivity", value: formatValue(data.productivity), tone: "green" },
+    { label: "Mood", value: formatValue(data.mood), tone: "pink" },
+  ];
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>FitIntel Dashboard</h1>
+      <section className={styles.hero}>
+        <div>
+          <p className={styles.kicker}>Today&apos;s wellness command center</p>
+          <h1 className={styles.title}>FitIntel Dashboard</h1>
+          <p className={styles.subtitle}>
+            Fitbit activity, sleep, stress, and heart-rate insights in one live view.
+          </p>
+        </div>
 
-      {/* Metrics */}
-      <div className={styles.grid}>
-        <Card>
-          <p className={styles.label}>Stress</p>
-          <div className={styles.value}>{data.stress}</div>
-        </Card>
+        <div className={styles.heroVisual} aria-hidden="true">
+          <div className={styles.heartPulse} />
+          <div className={styles.ecgLine}>
+            <span />
+          </div>
+          <p>Live body signals</p>
+        </div>
 
-        <Card>
-          <p className={styles.label}>Sleep</p>
-          <div className={styles.value}>{data.sleep} hrs</div>
-        </Card>
+        <div className={styles.actions}>
+          <label className={styles.dateControl}>
+            <span>Date</span>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </label>
 
-        <Card>
-          <p className={styles.label}>Productivity</p>
-          <div className={styles.value}>{data.productivity}</div>
-        </Card>
+          <button
+            className={styles.button}
+            onClick={() => fetchData(true)}
+            disabled={syncing}
+          >
+            {syncing ? "Syncing..." : "Refresh Data"}
+          </button>
+        </div>
+      </section>
 
-        <Card>
-          <p className={styles.label}>Mood</p>
-          <div className={styles.value}>{data.mood}</div>
-        </Card>
+      <div className={styles.statusBar}>
+        <span className={styles.liveIndicator} />
+        <span>{syncing ? "Updating Fitbit data" : "Dashboard data loaded"}</span>
+        {lastUpdated && <span className={styles.muted}>Last sync {lastUpdated}</span>}
       </div>
 
-      {/* Graph Section */}
-      <Card>
-        <div className={styles.graphContainer}>
-          <h2>📊 Heart Rate (Summary)</h2>
+      {syncError && <div className={styles.errorPanel}>{syncError}</div>}
+
+      <section className={styles.metricGrid}>
+        {metrics.map((metric) => (
+          <Card key={metric.label}>
+            <div className={`${styles.metricCard} ${styles[metric.tone]}`}>
+              <span className={styles.metricMarker} />
+              <p className={styles.label}>{metric.label}</p>
+              <div className={styles.value}>{metric.value}</div>
+            </div>
+          </Card>
+        ))}
+      </section>
+
+      <section className={styles.chartGrid}>
+        <Card>
+          <div className={styles.panelHeader}>
+            <div>
+              <p className={styles.panelEyebrow}>Hourly trend</p>
+              <h2>Heart Rate Summary</h2>
+            </div>
+            <span className={styles.badge}>{hrData.length} points</span>
+          </div>
           <HeartChart data={hrData} />
-        </div>
-      </Card>
+        </Card>
 
-      {/* Detailed Graph */}
-      <Card>
-        <div className={styles.graphContainer}>
-          <h2>📈 Heart Rate (Detailed)</h2>
-          <HeartChartDetailed data={hrMinute} />
-        </div>
-      </Card>
-
-      <button className={styles.button} onClick={fetchData}>
-        🔄 Refresh Data
-      </button>
+        <Card>
+          <div className={styles.panelHeader}>
+            <div>
+              <p className={styles.panelEyebrow}>Minute-level trace</p>
+              <h2>Detailed Heart Rate</h2>
+            </div>
+            <span className={styles.badge}>
+              {detailLoading ? "Loading" : `${hrMinute.length} points`}
+            </span>
+          </div>
+          {detailLoading ? (
+            <div className={styles.chartLoading}>Loading detailed heart-rate data...</div>
+          ) : (
+            <HeartChartDetailed data={hrMinute} />
+          )}
+        </Card>
+      </section>
     </div>
   );
 }

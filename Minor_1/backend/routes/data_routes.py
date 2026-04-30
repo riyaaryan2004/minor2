@@ -57,7 +57,7 @@ def rate():
 
     return {"status": "Saved"}
 
-@data_bp.route("/sync-day", methods=["POST"])
+@data_bp.route("/sync-day", methods=["GET","POST"])
 def sync_day():
     date = _clean_date(request.args.get("date"))
     if not date:

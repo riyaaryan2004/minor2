@@ -44,7 +44,7 @@ yarn-error.log*
 # ========================
 .env
 .env.*
-token.txt
+#token.txt
 
 # ========================
 # ML / Model Files
@@ -52,17 +52,6 @@ token.txt
 *.pkl
 Minor_1/ml/models/catboost_info/
 Minor_2/catboost_info/
-
-# ========================
-# Images (ignore all)
-# ========================
-*.png
-*.jpg
-*.jpeg
-
-# BUT KEEP GRAPHS
-!Minor_1/ml/features/hr_graph/
-!Minor_1/ml/features/hr_graph/*.png
 
 # ========================
 # Large Data Files

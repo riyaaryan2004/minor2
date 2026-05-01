@@ -339,27 +339,26 @@ border-radius: 6px;
 }
 
 .profileStats {
-display: flex;
-justify-content: space-between;
-margin-bottom: 10px;
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
 }
 
-.stat {
-text-align: center;
+.statCard {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  text-align: center;
 }
 
 .statValue {
-font-size: 18px;
-font-weight: bold;
-display: block;
+  font-size: 22px;
+  font-weight: 600;
 }
 
 .statLabel {
-font-size: 11px;
-opacity: 0.7;
-}
-
-.profileHint {
-font-size: 12px;
-opacity: 0.85;
+  font-size: 12px;
+  opacity: 0.6;
 }

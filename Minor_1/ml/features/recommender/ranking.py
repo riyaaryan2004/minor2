@@ -22,12 +22,6 @@ def score_movie(movie, mood, prod, profile):
     # user preferences
     title = movie.get("title", "")
 
-    if title in profile["liked"]:
-        score += 10
-
-    if title in profile["disliked"]:
-        score -= 10
-
     return score
 
 

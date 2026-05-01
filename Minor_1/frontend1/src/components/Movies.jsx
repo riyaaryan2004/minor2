@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from "react";
 import { getMovies } from "../api/api";
 import Card from "./Card";
 import styles from "./Movies.module.css";
-import { getMovieProfile } from "../api/api";
 
 const BASE_URL = "http://127.0.0.1:5000";
 
@@ -29,10 +28,6 @@ const GENRE_MAP = {
 function Movies() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState(null);
-
-  const [likedMovies, setLikedMovies] = useState([]);
-  const [dislikedMovies, setDislikedMovies] = useState([]);
 
   const [filters, setFilters] = useState({
     language: "",
@@ -57,9 +52,6 @@ function Movies() {
   useEffect(() => {
     const loadAll = async () => {
       await fetchMovies();
-
-      const profileData = await getMovieProfile();
-      setProfile(profileData);
     };
 
     loadAll();
@@ -86,42 +78,6 @@ function Movies() {
     }));
   };
 
-  const handleLike = async (title) => {
-    setLikedMovies((prev) =>
-      prev.includes(title) ? prev : [...prev, title]
-    );
-
-    try {
-      await fetch(`${BASE_URL}/movies/like`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ title }),
-      });
-    } catch (err) {
-      console.error("Like failed", err);
-    }
-  };
-
-  const handleDislike = async (title) => {
-    setDislikedMovies((prev) =>
-      prev.includes(title) ? prev : [...prev, title]
-    );
-
-    try {
-      await fetch(`${BASE_URL}/movies/dislike`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ title }),
-      });
-    } catch (err) {
-      console.error("Dislike failed", err);
-    }
-  };
-
   const getMatchScore = (movie) => {
     return 80 + (movie.id % 20);
   };
@@ -138,7 +94,7 @@ function Movies() {
         <p>
           {filters.genre
             ? "Using your selected genre preference"
-            : "Movies selected based on your mood and productivity"}
+            : "Selected based on your mood, sleep, and activity patterns"}
         </p>
       </div>
 
@@ -253,32 +209,8 @@ function Movies() {
 
                     <div className={styles.reason}>
                       {movie.vote_average > 8
-                        ? "⭐ Highly rated movie"
-                        : "🎯 Matches your current mood"}
-                    </div>
-
-                    <div className={styles.actions}>
-                      <button
-                        className={`${styles.iconBtn} ${styles.likeBtn} ${
-                          likedMovies.includes(movie.title)
-                            ? styles.activeLike
-                            : ""
-                        }`}
-                        onClick={() => handleLike(movie.title)}
-                      >
-                        👍
-                      </button>
-
-                      <button
-                        className={`${styles.iconBtn} ${styles.dislikeBtn} ${
-                          dislikedMovies.includes(movie.title)
-                            ? styles.activeDislike
-                            : ""
-                        }`}
-                        onClick={() => handleDislike(movie.title)}
-                      >
-                        👎
-                      </button>
+                        ? "⭐ Critically acclaimed & high-rated"
+                        : "🎯 Aligned with your current mood pattern"}
                     </div>
                   </div>
                 </div>
@@ -289,39 +221,6 @@ function Movies() {
           <p>No movies available</p>
         )}
       </Card>
-
-      {profile && (
-        <div className={styles.profileBox}>
-          <div className={styles.profileHeader}>
-            <h3>🧠 Your Preferences</h3>
-            <span className={styles.badge}>Learning</span>
-          </div>
-
-          <div className={styles.profileStats}>
-            <div className={styles.stat}>
-              <span className={styles.statValue}>{profile.liked.length}</span>
-              <span className={styles.statLabel}>Liked</span>
-            </div>
-
-            <div className={styles.stat}>
-              <span className={styles.statValue}>{profile.disliked.length}</span>
-              <span className={styles.statLabel}>Disliked</span>
-            </div>
-
-            <div className={styles.stat}>
-              <span className={styles.statValue}>{movies.length}</span>
-              <span className={styles.statLabel}>Recommended</span>
-            </div>
-          </div>
-
-          {profile.liked.length > 0 && (
-            <div className={styles.profileHint}>
-              ⭐ You prefer movies like{" "}
-              <strong>{profile.liked.slice(0, 2).join(", ")}</strong>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

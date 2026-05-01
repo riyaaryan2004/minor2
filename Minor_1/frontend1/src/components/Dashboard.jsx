@@ -13,6 +13,15 @@ const formatValue = (value, suffix = "") => {
   return `${value}${suffix}`;
 };
 
+const getTodayDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
 function Dashboard() {
   const [data, setData] = useState(null);
   const [hrData, setHrData] = useState([]);
@@ -24,7 +33,7 @@ function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState("");
 
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
+    getTodayDate
   );
 
   const fetchData = useCallback(async (shouldSync = false) => {

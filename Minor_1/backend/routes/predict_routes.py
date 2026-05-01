@@ -7,11 +7,19 @@ from backend.config import DATA_DIR
 
 predict_bp = Blueprint("predict", __name__)
 
+def _clean_date(date):
+    if not date or date in {"undefined", "null"}:
+        return None
+
+    return str(date).strip()
+
 @predict_bp.route("/predict")
 def predict():
-    date = request.args.get("date")
+    date = _clean_date(request.args.get("date"))
 
     df = pd.read_csv(os.path.join(DATA_DIR, "daily_data.csv"))
+    df["date"] = df["date"].astype(str).str.strip()
+
     if date:
         df = df[df["date"] == date]
 
@@ -24,4 +32,9 @@ def predict():
     result = predict_day(row)    
     print("Requested date:", date)
     print("Available dates:", df["date"].unique())
-    return result
+    return {
+        "stress": round(row["stress_index"], 3),
+        "productivity": round(prod, 2),
+        "sleep": round(row["sleep_hours"], 2),
+        "mood": round(mood, 2)
+    }

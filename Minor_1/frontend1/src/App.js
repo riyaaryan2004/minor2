@@ -1,9 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./components/Dashboard";
-import Recommendations from "./components/Recommendations";
 import Alerts from "./components/Alerts";
 import About from "./components/About";
+import Activity from "./components/Activity";
+import Movies from "./components/Movies";
 
 function App() {
   return (
@@ -11,7 +12,8 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/recommendations" element={<Recommendations />} />
+          <Route path="/activity" element={<Activity />} />
+          <Route path="/movies" element={<Movies />} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/about" element={<About />} />
         </Routes>

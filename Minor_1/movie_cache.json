@@ -1,0 +1,331 @@
+{
+    "2026-05-01_{\"language\": \"hi\", \"min_rating\": 7.0}_6.7_5.8": [
+        {
+            "adult": false,
+            "backdrop_path": "/67HggiWaP9ZLv5sPYmyRV37yAJM.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 13,
+            "title": "Forrest Gump",
+            "original_language": "en",
+            "original_title": "Forrest Gump",
+            "overview": "A man with a low IQ has accomplished great things in his life and been present during significant historic events\u2014in each case, far exceeding what anyone imagined he could do. But despite all he has achieved, his one true love eludes him.",
+            "popularity": 30.1888,
+            "poster_path": "/Cw4hIUIAmSYfK9QfaUW5igp9La.jpg",
+            "release_date": "1994-06-23",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.464,
+            "vote_count": 29610
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/nlPCdZlHtRNcF6C9hzUH4ebmV1w.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 313369,
+            "title": "La La Land",
+            "original_language": "en",
+            "original_title": "La La Land",
+            "overview": "Mia, an aspiring actress, serves lattes to movie stars in between auditions and Sebastian, a jazz musician, scrapes by playing cocktail party gigs in dingy bars, but as success mounts they are faced with decisions that begin to fray the fragile fabric of their love affair, and the dreams they worked so hard to maintain in each other threaten to rip them apart.",
+            "popularity": 25.9605,
+            "poster_path": "/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg",
+            "release_date": "2016-12-01",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.898,
+            "vote_count": 18026
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/yvPbncYhMu9FfTjDhq0N5lgnVkO.jpg",
+            "genre_ids": [
+                35,
+                10749,
+                18
+            ],
+            "id": 4951,
+            "title": "10 Things I Hate About You",
+            "original_language": "en",
+            "original_title": "10 Things I Hate About You",
+            "overview": "On the first day at his new school, Cameron instantly falls for Bianca, the gorgeous girl of his dreams. The only problem is that Bianca is forbidden to date until her ill-tempered, completely un-dateable older sister Kat goes out, too. In an attempt to solve his problem, Cameron singles out the only guy who could possibly be a match for Kat: a mysterious bad boy with a nasty reputation of his own.",
+            "popularity": 13.4757,
+            "poster_path": "/ujERk3aKABXU3NDXOAxEQYTHe9A.jpg",
+            "release_date": "1999-03-30",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.589,
+            "vote_count": 8858
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/6N5d02quKqMKqvTpOdFmBDy9scY.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 19404,
+            "title": "Dilwale Dulhania Le Jayenge",
+            "original_language": "hi",
+            "original_title": "\u0926\u093f\u0932\u0935\u093e\u0932\u0947 \u0926\u0941\u0932\u094d\u0939\u0928\u093f\u092f\u093e \u0932\u0947 \u091c\u093e\u092f\u0947\u0902\u0917\u0947",
+            "overview": "Raj is a rich, carefree, happy-go-lucky second generation NRI. Simran is the daughter of Chaudhary Baldev Singh, who in spite of being an NRI is very strict about adherence to Indian values. Simran has left for India to be married to her childhood fianc\u00e9. Raj leaves for India with a mission at his hands, to claim his lady love under the noses of her whole family. Thus begins a saga.",
+            "popularity": 17.144,
+            "poster_path": "/2CAL2433ZeIihfX1Hb2139CX0pW.jpg",
+            "release_date": "1995-10-20",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.513,
+            "vote_count": 4578
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/8ohobj5lAIbl5XWw11FywS3IRrS.jpg",
+            "genre_ids": [
+                16,
+                10751,
+                35,
+                14,
+                10749
+            ],
+            "id": 809,
+            "title": "Shrek 2",
+            "original_language": "en",
+            "original_title": "Shrek 2",
+            "overview": "Happily ever after never seemed so far far away when a trip to meet the in-laws turns into a hilariously twisted adventure for Shrek and Fiona. With the help of his faithful Donkey, Shrek takes on a potion-brewing Fairy Godmother, the pompous Prince Charming, and the ogre-killer, Puss In Boots.",
+            "popularity": 13.3646,
+            "poster_path": "/2yYP0PQjG8zVqturh1BAqu2Tixl.jpg",
+            "release_date": "2004-05-19",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.311,
+            "vote_count": 13356
+        }
+    ],
+    "2026-05-01_{\"language\": \"ko\", \"min_rating\": 7.0}_6.7_5.8": [
+        {
+            "adult": false,
+            "backdrop_path": "/oBcvmHD7lbaX8RZ7NXvO05fIJef.jpg",
+            "genre_ids": [
+                10749,
+                18,
+                35
+            ],
+            "id": 1355666,
+            "title": "Love Untangled",
+            "original_language": "ko",
+            "original_title": "\uace0\ubc31\uc758 \uc5ed\uc0ac",
+            "overview": "A lovestruck teen plans to win the school heartthrob by going from curly to straight hair \u2014 until a new transfer student changes everything.",
+            "popularity": 5.8057,
+            "poster_path": "/e7jStO2xfBUAUK37LbINHd1qtgy.jpg",
+            "release_date": "2025-08-28",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.272,
+            "vote_count": 193
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/t9T6jKk2TqDqzpWTCMSeMNjYcX7.jpg",
+            "genre_ids": [
+                18,
+                35,
+                10749
+            ],
+            "id": 18438,
+            "title": "Castaway on the Moon",
+            "original_language": "ko",
+            "original_title": "\uae40\uc528 \ud45c\ub958\uae30",
+            "overview": "Mr. Kim is jobless, lost in debt and has been dumped by his girlfriend. He decides to end it all by jumping into the Han River \u2013 only to find himself washed up on a small, mid-river island. He soon abandons thoughts of suicide or rescue and begins a new life as a castaway. His antics catch the attention of a young woman whose apartment overlooks the river. Her discovery changes both their lives.",
+            "popularity": 2.7196,
+            "poster_path": "/gGzovvmOEyNVUu4WEHtw9wfDsqI.jpg",
+            "release_date": "2009-05-14",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.913,
+            "vote_count": 731
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/8wjJZ2kloq4cZ0Yedh8AuVjSTlY.jpg",
+            "genre_ids": [
+                18,
+                10749,
+                35
+            ],
+            "id": 662237,
+            "title": "Sweet & Sour",
+            "original_language": "ko",
+            "original_title": "\uc0c8\ucf64\ub2ec\ucf64",
+            "overview": "Faced with real-world opportunities and challenges, a couple endures the highs and lows of trying to make a long-distance relationship survive.",
+            "popularity": 3.3096,
+            "poster_path": "/3yGwAPl6LWpi8QwHjwCMaqsPgNB.jpg",
+            "release_date": "2021-06-04",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.708,
+            "vote_count": 248
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/nN4Gs3vZAOJ1D6FRtrwbU9VGYwU.jpg",
+            "genre_ids": [
+                16,
+                14,
+                10751,
+                35,
+                10749,
+                12
+            ],
+            "id": 486589,
+            "title": "Red Shoes and the Seven Dwarfs",
+            "original_language": "ko",
+            "original_title": "\ub808\ub4dc\uc288\uc988",
+            "overview": "Princes who have been turned into Dwarfs seek the red shoes of a lady in order to break the spell, although it will not be easy.",
+            "popularity": 4.9427,
+            "poster_path": "/MBiKqTsouYqAACLYNDadsjhhC0.jpg",
+            "release_date": "2019-07-25",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.69,
+            "vote_count": 1132
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/cpztJIofqrFQVbgFfSgXzXdytTL.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749,
+                10751
+            ],
+            "id": 62439,
+            "title": "Hello Ghost",
+            "original_language": "ko",
+            "original_title": "\ud5ec\ub85c\uc6b0 \uace0\uc2a4\ud2b8",
+            "overview": "A man's failed suicide attempt enables him to see ghosts, who later keep following him everywhere. It is now up to him to fulfill their wishes to make them go away.",
+            "popularity": 1.4496,
+            "poster_path": "/eABJoKMxXky1R13aR2E9It90Djm.jpg",
+            "release_date": "2010-12-23",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.6,
+            "vote_count": 121
+        }
+    ],
+    "2026-05-01_{}_6.7_5.8": [
+        {
+            "adult": false,
+            "backdrop_path": "/67HggiWaP9ZLv5sPYmyRV37yAJM.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 13,
+            "title": "Forrest Gump",
+            "original_language": "en",
+            "original_title": "Forrest Gump",
+            "overview": "A man with a low IQ has accomplished great things in his life and been present during significant historic events\u2014in each case, far exceeding what anyone imagined he could do. But despite all he has achieved, his one true love eludes him.",
+            "popularity": 30.1888,
+            "poster_path": "/Cw4hIUIAmSYfK9QfaUW5igp9La.jpg",
+            "release_date": "1994-06-23",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.464,
+            "vote_count": 29610
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/nlPCdZlHtRNcF6C9hzUH4ebmV1w.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 313369,
+            "title": "La La Land",
+            "original_language": "en",
+            "original_title": "La La Land",
+            "overview": "Mia, an aspiring actress, serves lattes to movie stars in between auditions and Sebastian, a jazz musician, scrapes by playing cocktail party gigs in dingy bars, but as success mounts they are faced with decisions that begin to fray the fragile fabric of their love affair, and the dreams they worked so hard to maintain in each other threaten to rip them apart.",
+            "popularity": 25.9605,
+            "poster_path": "/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg",
+            "release_date": "2016-12-01",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.898,
+            "vote_count": 18026
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/yvPbncYhMu9FfTjDhq0N5lgnVkO.jpg",
+            "genre_ids": [
+                35,
+                10749,
+                18
+            ],
+            "id": 4951,
+            "title": "10 Things I Hate About You",
+            "original_language": "en",
+            "original_title": "10 Things I Hate About You",
+            "overview": "On the first day at his new school, Cameron instantly falls for Bianca, the gorgeous girl of his dreams. The only problem is that Bianca is forbidden to date until her ill-tempered, completely un-dateable older sister Kat goes out, too. In an attempt to solve his problem, Cameron singles out the only guy who could possibly be a match for Kat: a mysterious bad boy with a nasty reputation of his own.",
+            "popularity": 13.4757,
+            "poster_path": "/ujERk3aKABXU3NDXOAxEQYTHe9A.jpg",
+            "release_date": "1999-03-30",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.589,
+            "vote_count": 8858
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/6N5d02quKqMKqvTpOdFmBDy9scY.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 19404,
+            "title": "Dilwale Dulhania Le Jayenge",
+            "original_language": "hi",
+            "original_title": "\u0926\u093f\u0932\u0935\u093e\u0932\u0947 \u0926\u0941\u0932\u094d\u0939\u0928\u093f\u092f\u093e \u0932\u0947 \u091c\u093e\u092f\u0947\u0902\u0917\u0947",
+            "overview": "Raj is a rich, carefree, happy-go-lucky second generation NRI. Simran is the daughter of Chaudhary Baldev Singh, who in spite of being an NRI is very strict about adherence to Indian values. Simran has left for India to be married to her childhood fianc\u00e9. Raj leaves for India with a mission at his hands, to claim his lady love under the noses of her whole family. Thus begins a saga.",
+            "popularity": 17.144,
+            "poster_path": "/2CAL2433ZeIihfX1Hb2139CX0pW.jpg",
+            "release_date": "1995-10-20",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.513,
+            "vote_count": 4578
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/8ohobj5lAIbl5XWw11FywS3IRrS.jpg",
+            "genre_ids": [
+                16,
+                10751,
+                35,
+                14,
+                10749
+            ],
+            "id": 809,
+            "title": "Shrek 2",
+            "original_language": "en",
+            "original_title": "Shrek 2",
+            "overview": "Happily ever after never seemed so far far away when a trip to meet the in-laws turns into a hilariously twisted adventure for Shrek and Fiona. With the help of his faithful Donkey, Shrek takes on a potion-brewing Fairy Godmother, the pompous Prince Charming, and the ogre-killer, Puss In Boots.",
+            "popularity": 13.3646,
+            "poster_path": "/2yYP0PQjG8zVqturh1BAqu2Tixl.jpg",
+            "release_date": "2004-05-19",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.311,
+            "vote_count": 13356
+        }
+    ]
+}

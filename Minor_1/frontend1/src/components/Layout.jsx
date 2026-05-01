@@ -3,7 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 
 const navItems = [
   { to: "/", label: "Dashboard" },
-  { to: "/recommendations", label: "Recommendations" },
+  { to: "/activity", label: "Activity" },
+  { to: "/movies", label: "Movies" },
   { to: "/alerts", label: "Alerts" },
   { to: "/about", label: "About" },
 ];

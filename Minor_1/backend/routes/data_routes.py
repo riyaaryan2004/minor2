@@ -6,7 +6,8 @@ from backend.config import DATA_DIR
 from backend.services.token_service import get_token
 from ml.features.activity_suggestion import get_activity_suggestions
 from ml.features.alerts import get_alerts
-from ml.features.movie_recommendor import recommend_movies
+from ml.features.recommender.engine import recommend_movies
+
 from ml.features.predict_day import predict_day
 from ml.repair_day import repair_day
 
@@ -44,7 +45,6 @@ def rate():
         from datetime import datetime
         date = datetime.now().strftime("%Y-%m-%d")
 
-    import pandas as pd
     df = pd.read_csv(os.path.join(DATA_DIR, "daily_data.csv"))
 
     if date not in df["date"].values:
@@ -103,23 +103,70 @@ def movies():
     row = _get_daily_row(date)
 
     if row is None:
-        df = pd.read_csv(os.path.join(DATA_DIR, "daily_data.csv"))
-        
-        if df.empty:
-            return {"movies": []}
-        
-        # fallback to latest available data
-        row = df.tail(1).iloc[0]
+        return {"movies": []}
+
+    # 🔥 GET FILTERS FROM FRONTEND
+    user_filters = {
+        "language": request.args.get("language"),
+        "min_rating": request.args.get("min_rating", type=float),
+        "year_after": request.args.get("year_after", type=int),
+        "genre": request.args.get("genre", type=int),
+    }
+
+    # ✅ CLEAN filters
+    user_filters = {
+        k: v for k, v in user_filters.items()
+        if v not in [None, "", "null", "undefined"]
+    }
+
+    print("👉 /movies API called")
+    print("Filters:", user_filters)
 
     try:
         import io
         from contextlib import redirect_stdout
 
-        with redirect_stdout(io.StringIO()):
-            movies_list = recommend_movies(row)
+        movies_list = recommend_movies(row, user_filters)
+        
+        if not user_filters:
+            print("ℹ️ No filters applied")
+            
+        elif user_filters.get("min_rating", 0) >= 9:
+            print("⚠️ Very strict rating filter")
 
-        return {"movies": movies_list}
+        return {
+            "movies": movies_list,
+            "filters_used": user_filters
+        }
 
+    # ✅ FIX 2: PROPER ERROR TRACE
     except Exception as e:
-        print("Movie error:", e)
+        import traceback
+        traceback.print_exc()
         return {"movies": []}
+    
+@data_bp.route("/movies/refresh")
+def refresh_movies():
+    from ml.features.recommender.cache import clear_cache
+    clear_cache()
+    return {"status": "cache cleared"}
+
+@data_bp.route("/movies/like", methods=["POST"])
+def like_movie():
+    from ml.features.recommender.profile import like_movie
+    title = request.json.get("title")
+    like_movie(title)
+    return {"status": "liked"}
+
+@data_bp.route("/movies/dislike", methods=["POST"])
+def dislike_movie():
+    from ml.features.recommender.profile import dislike_movie
+    title = request.json.get("title")
+    dislike_movie(title)
+    return {"status": "disliked"}
+
+@data_bp.route("/movies/profile")
+def get_profile():
+    from ml.features.recommender.profile import load_profile
+    profile = load_profile()
+    return profile

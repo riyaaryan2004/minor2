@@ -62,9 +62,17 @@ export const syncDay = async (date) => {
 };
 
 // Movies
-export const getMovies = async (date) => {
+export const getMovies = async (date, filters = {}) => {
   try {
-    const res = await fetchJson(withDate("/movies", date));
+    const query = new URLSearchParams({
+      ...(date && { date }),
+      ...(filters.language && { language: filters.language }),
+      ...(filters.min_rating && { min_rating: filters.min_rating }),
+      ...(filters.year_after && { year_after: filters.year_after }),
+    });
+
+    const res = await fetchJson(`${BASE_URL}/movies?${query.toString()}`);
+
     return res.ok ? res.data : { movies: [] };
   } catch (err) {
     console.error(err);
@@ -113,5 +121,15 @@ export const getHRMinute = async (date) => {
   } catch (err) {
     console.error(err);
     return [];
+  }
+};
+
+export const getMovieProfile = async () => {
+  try {
+    const res = await fetch("http://127.0.0.1:5000/movies/profile");
+    return await res.json();
+  } catch (err) {
+    console.error(err);
+    return { liked: [], disliked: [], history: [] };
   }
 };

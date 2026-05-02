@@ -82,3 +82,9 @@ coverage/
 .vscode/
 venv/
 venv310/
+
+# token
+**/token.txt
+
+**/movie_cache.json
+**/user_profile.json

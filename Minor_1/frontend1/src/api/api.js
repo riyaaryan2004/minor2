@@ -228,12 +228,3 @@ export const getLatestHeartRate = async () => {
   }
 };
 
-export const getMovieProfile = async () => {
-  try {
-    const res = await fetch("http://127.0.0.1:5000/movies/profile");
-    return await res.json();
-  } catch (err) {
-    console.error(err);
-    return { liked: [], disliked: [], history: [] };
-  }
-};

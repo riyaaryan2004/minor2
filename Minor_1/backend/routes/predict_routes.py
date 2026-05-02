@@ -42,12 +42,15 @@ def predict():
     print("Available dates:", df["date"].unique())
 
     return {
-        "stress": result["stress"],
-        "productivity": result["productivity"],
-        "sleep": result["sleep"],
-        "mood": result["mood"],
-        "day_type": result.get("day_type"),
-        "root_cause": result.get("root_cause"),
-        "primary_action": result.get("primary_action"),
-        "daily_goal": result.get("daily_goal"),
-    }
+    "stress": result["stress"],
+    "productivity": round(result["productivity"], 2),
+    "sleep": result["sleep"],
+    "mood": round(result["mood"], 2),
+
+    "suggestions": result["suggestions"],       
+    "day_type": result["day_type"],
+    "primary_action": result["primary_action"],
+    "root_cause": result["root_cause"],
+    "history_insights": result["history_insights"],
+    "daily_goal": result["daily_goal"]
+}

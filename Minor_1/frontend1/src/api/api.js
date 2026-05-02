@@ -1,7 +1,6 @@
-//src/api/api.js
-
 const BASE_URL = "http://127.0.0.1:5000";
 const REQUEST_TIMEOUT = 12000;
+const MOVIE_REQUEST_TIMEOUT = 30000;
 
 const withDate = (path, date) => {
   if (!date) {
@@ -11,9 +10,9 @@ const withDate = (path, date) => {
   return `${BASE_URL}${path}?date=${encodeURIComponent(date)}`;
 };
 
-const fetchJson = async (url, options = {}) => {
+const fetchJson = async (url, options = {}, timeout = REQUEST_TIMEOUT) => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
     const res = await fetch(url, {
@@ -63,21 +62,61 @@ export const syncDay = async (date) => {
 };
 
 // Movies
-export const getMovies = async (date, filters = {}) => {
+export const getMovies = async (date) => {
   try {
-    const query = new URLSearchParams({
-      ...(date && { date }),
-      ...(filters.language && { language: filters.language }),
-      ...(filters.min_rating && { min_rating: filters.min_rating }),
-      ...(filters.year_after && { year_after: filters.year_after }),
-    });
-
-    const res = await fetchJson(`${BASE_URL}/movies?${query.toString()}`);
-
-    return res.ok ? res.data : { movies: [] };
+    const res = await fetchJson(withDate("/movies", date), {}, MOVIE_REQUEST_TIMEOUT);
+    return res.ok ? res.data : { movies: [], error: true };
   } catch (err) {
-    console.error(err);
-    return { movies: [] };
+    console.error("Error fetching movies:", err);
+    return { movies: [], error: true };
+  }
+};
+
+export const refreshMoviePool = async () => {
+  try {
+    const res = await fetchJson(`${BASE_URL}/movies/refresh`, {}, MOVIE_REQUEST_TIMEOUT);
+    return res.ok ? res.data : { error: true };
+  } catch (err) {
+    console.error("Error refreshing movies:", err);
+    return { error: true };
+  }
+};
+
+export const getMovieProfile = async () => {
+  try {
+    const res = await fetchJson(`${BASE_URL}/movies/profile`);
+    return res.ok ? res.data : { liked: [], disliked: [], history: [] };
+  } catch (err) {
+    console.error("Error fetching movie profile:", err);
+    return { liked: [], disliked: [], history: [] };
+  }
+};
+
+export const likeMovie = async (title) => {
+  try {
+    const res = await fetchJson(`${BASE_URL}/movies/like`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
+    });
+    return res.ok ? res.data : { error: true };
+  } catch (err) {
+    console.error("Error liking movie:", err);
+    return { error: true };
+  }
+};
+
+export const dislikeMovie = async (title) => {
+  try {
+    const res = await fetchJson(`${BASE_URL}/movies/dislike`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
+    });
+    return res.ok ? res.data : { error: true };
+  } catch (err) {
+    console.error("Error disliking movie:", err);
+    return { error: true };
   }
 };
 

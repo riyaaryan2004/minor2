@@ -1,0 +1,30 @@
+Analyze the following parts of my project:
+
+1. Backend ML logic:
+- ml/features/recommendor (all files)
+
+2. Backend routes:
+- backend/routes/data_routes.py
+
+3. Frontend:
+- frontend1/src/components/Movies.jsx
+
+Your task:
+- Trace the full flow of movie recommendation data from ML → backend → frontend
+- Identify any mismatches or broken connections between:
+  - function names
+  - API routes
+  - request/response formats (JSON keys, structure)
+  - variable naming inconsistencies
+- Check if frontend is expecting fields that backend does not send
+- Check if backend is calling ML functions correctly
+- Identify possible runtime errors or logical bugs
+
+Output:
+- List of issues (if any)
+- Exact file + line reference (approx is fine)
+- Why it breaks
+- Suggested fix
+
+Important:
+Do NOT modify any files. Only analyze.

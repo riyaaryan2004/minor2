@@ -1,226 +1,391 @@
 import { useEffect, useState, useCallback } from "react";
 import { getMovies } from "../api/api";
-import Card from "./Card";
 import styles from "./Movies.module.css";
 
-const BASE_URL = "http://127.0.0.1:5000";
+const DESCRIPTION_LIMIT = 120;
+const FEATURED_DESCRIPTION_LIMIT = 230;
 
 const posterUrl = (path) => {
   if (!path) return "";
   return `https://image.tmdb.org/t/p/w342${path}`;
 };
 
-/* ✅ GENRE MAP */
 const GENRE_MAP = {
+  12: "Adventure",
+  14: "Fantasy",
+  16: "Animation",
+  18: "Drama",
+  27: "Horror",
   28: "Action",
   35: "Comedy",
-  18: "Drama",
-  10749: "Romance",
   53: "Thriller",
-  16: "Animation",
-  27: "Horror",
   80: "Crime",
-  12: "Adventure",
+  9648: "Mystery",
+  10749: "Romance",
   10751: "Family",
-  14: "Fantasy",
+};
+
+const LANGUAGE_MAP = {
+  hi: "Hindi",
+  en: "Hollywood",
+};
+
+const moodSignals = [
+  "Mood-based genres",
+  "Popular known movies",
+  "Comfort watch balance",
+  "Fresh daily queue",
+];
+
+const panelStyle = {
+  display: "grid",
+  gap: "18px",
+};
+
+const chipRowStyle = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "8px",
+};
+
+const compactSectionStyle = {
+  display: "grid",
+  gap: "14px",
+};
+
+const getLanguageLabel = (movie) => {
+  return LANGUAGE_MAP[movie.original_language] || "Popular";
+};
+
+const getReason = (movie) => {
+  if (movie.original_language === "hi") {
+    return "";
+  }
+
+  if ((movie.vote_count || 0) >= 1000 || (movie.vote_average || 0) >= 8) {
+    return "Included as a well-known, high-confidence recommendation.";
+  }
+
+  return "Selected because its genre fits today's mood and energy level.";
+};
+
+const getMatchScore = (movie) => {
+  const rating = movie.vote_average || 0;
+  const voteBoost = Math.min(movie.vote_count || 0, 2000) / 2000;
+  const languageBoost = movie.original_language === "hi" ? 5 : 0;
+
+  return Math.min(98, Math.round(78 + rating * 1.5 + voteBoost * 5 + languageBoost));
+};
+
+const getMovieKey = (movie, index) => {
+  return movie.id || movie.title || index;
+};
+
+const getDescription = (overview, isExpanded, limit) => {
+  if (!overview || overview.length <= limit || isExpanded) {
+    return overview;
+  }
+
+  return `${overview.slice(0, limit)}...`;
 };
 
 function Movies() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const [filters, setFilters] = useState({
-    language: "",
-    min_rating: "",
-    year_after: "",
-    genre: "",
-  });
+  const [error, setError] = useState("");
+  const [expandedMovies, setExpandedMovies] = useState({});
 
   const fetchMovies = useCallback(async () => {
     setLoading(true);
+    setError("");
 
-    const cleanFilters = Object.fromEntries(
-      Object.entries(filters).filter(([_, v]) => v !== "" && v !== null)
-    );
+    const data = await getMovies();
 
-    const data = await getMovies(null, cleanFilters);
+    if (data?.error) {
+      setError("Unable to load movie recommendations right now.");
+      setMovies([]);
+    } else {
+      setMovies(data?.movies || []);
+      setExpandedMovies({});
+    }
 
-    setMovies(data?.movies || []);
     setLoading(false);
-  }, [filters]);
+  }, []);
 
   useEffect(() => {
-    const loadAll = async () => {
-      await fetchMovies();
-    };
-
-    loadAll();
+    fetchMovies();
   }, [fetchMovies]);
 
-  const refreshMovies = async () => {
-    try {
-      await fetch(`${BASE_URL}/movies/refresh`);
-      fetchMovies();
-    } catch (err) {
-      console.error("Refresh failed", err);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFilters((prev) => ({
-      ...prev,
-      [name]:
-        name === "genre" || name === "year_after" || name === "min_rating"
-          ? value === "" ? "" : Number(value)
-          : value,
+  const toggleDescription = (movieKey) => {
+    setExpandedMovies((current) => ({
+      ...current,
+      [movieKey]: !current[movieKey],
     }));
   };
 
-  const getMatchScore = (movie) => {
-    return 80 + (movie.id % 20);
+  const renderDescription = (movie, movieKey, limit = DESCRIPTION_LIMIT) => {
+    const overview = movie.overview || "";
+    const isLongOverview = overview.length > limit;
+    const isExpanded = Boolean(expandedMovies[movieKey]);
+    const description = getDescription(overview, isExpanded, limit);
+
+    if (!overview) return null;
+
+    return (
+      <div className={styles.descriptionBlock}>
+        <p className={styles.description}>{description}</p>
+
+        {isLongOverview && (
+          <button
+            type="button"
+            className={styles.readMoreButton}
+            onClick={() => toggleDescription(movieKey)}
+          >
+            {isExpanded ? "Show less" : "Read more"}
+          </button>
+        )}
+      </div>
+    );
   };
+
+  const renderMovieCard = (movie, index) => {
+    const movieKey = getMovieKey(movie, index);
+    const reason = getReason(movie);
+
+    return (
+      <div key={movieKey} className={styles.movieCard}>
+        <div className={styles.posterShell}>
+          {posterUrl(movie.poster_path) ? (
+            <img src={posterUrl(movie.poster_path)} alt={movie.title} />
+          ) : (
+            <div className={styles.posterFallback}>
+              <span>FitIntel Pick</span>
+            </div>
+          )}
+
+          <span className={styles.rank}>
+            {String(index + 1).padStart(2, "0")}
+          </span>
+
+          <span className={styles.matchScore}>
+            <span aria-hidden="true">*</span> {getMatchScore(movie)}%
+          </span>
+        </div>
+
+        <div className={styles.movieInfo}>
+          <div className={styles.titleRow}>
+            <strong>{movie.title}</strong>
+            <span className={styles.languagePill}>{getLanguageLabel(movie)}</span>
+          </div>
+
+          <div className={styles.metaRow}>
+            <span>{movie.release_date ? movie.release_date.slice(0, 4) : "Known pick"}</span>
+            <span>{movie.vote_average ? `* ${movie.vote_average.toFixed(1)}/10` : "No rating"}</span>
+          </div>
+
+          <div className={styles.tags}>
+            {movie.genre_ids?.slice(0, 2).map((genre) => (
+              <span key={genre} className={styles.tag}>
+                {GENRE_MAP[genre] || "Popular"}
+              </span>
+            ))}
+          </div>
+
+          {renderDescription(movie, movieKey)}
+
+          {reason && (
+            <div className={styles.reason}>
+              <span aria-hidden="true">*</span>
+              {reason}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const topPick = movies[0];
+  const remainingMovies = movies.slice(1);
+  const hindiMovies = remainingMovies.filter((movie) => movie.original_language === "hi");
+  const hollywoodMovies = remainingMovies.filter((movie) => movie.original_language === "en");
+  const otherMovies = remainingMovies.filter(
+    (movie) => movie.original_language !== "hi" && movie.original_language !== "en"
+  );
 
   return (
     <div className={styles.wrapper}>
       <section className={styles.header}>
-        <h1>Movie Recommendations</h1>
-        <p>Based on your current mood and health state</p>
+        <div>
+          <p className={styles.kicker}>FitIntel Cinema</p>
+          <h1>Movie Recommendations</h1>
+          <p>
+            A watchlist built from your predicted mood, productivity, and energy for the day.
+          </p>
+        </div>
+
+        <div className={styles.heroBadge} aria-hidden="true">
+          <span className={styles.heroIcon}>FI</span>
+          <span>{movies.length || 30} curated picks</span>
+        </div>
       </section>
 
       <div className={styles.insightBox}>
-        <h3>🧠 Recommendation Insight</h3>
-        <p>
-          {filters.genre
-            ? "Using your selected genre preference"
-            : "Selected based on your mood, sleep, and activity patterns"}
-        </p>
+        <span className={styles.insightIcon} aria-hidden="true">ML</span>
+        <div>
+          <h3>Why These Movies?</h3>
+          <p>
+            The recommender chooses genres from today&apos;s mood and productivity, then ranks Hindi
+            titles first while keeping famous Hollywood movies when they are a strong match.
+          </p>
+        </div>
       </div>
 
-      <div className={styles.filterBar}>
-        <select name="language" value={filters.language} onChange={handleChange}>
-          <option value="">🌐 All Languages</option>
-          <option value="en">English</option>
-          <option value="hi">Hindi</option>
-          <option value="ko">Korean</option>
-          <option value="ja">Japanese</option>
-          <option value="fr">French</option>
-          <option value="es">Spanish</option>
-          <option value="it">Italian</option>
-        </select>
-
-        <select name="genre" value={filters.genre} onChange={handleChange}>
-          <option value="">🎭 All Genres</option>
-          <option value="28">Action</option>
-          <option value="35">Comedy</option>
-          <option value="18">Drama</option>
-          <option value="10749">Romance</option>
-          <option value="53">Thriller</option>
-          <option value="16">Animation</option>
-          <option value="27">Horror</option>
-          <option value="80">Crime</option>
-        </select>
-
-        <select name="min_rating" value={filters.min_rating} onChange={handleChange}>
-          <option value="">⭐ Any Rating</option>
-          <option value="6">6+</option>
-          <option value="7">7+</option>
-          <option value="8">8+</option>
-          <option value="9">9+</option>
-        </select>
-
-        <select name="year_after" value={filters.year_after} onChange={handleChange}>
-          <option value="">📅 Any Year</option>
-          <option value="2020">After 2020</option>
-          <option value="2015">After 2015</option>
-          <option value="2010">After 2010</option>
-          <option value="2000">After 2000</option>
-          <option value="1990">After 1990</option>
-          <option value="1980">After 1980</option>
-          <option value="1950">After 1950</option>
-          <option value="1900">After 1900</option>
-        </select>
-
-        <button className={styles.buttonPrimary} onClick={fetchMovies}>
-          Apply
-        </button>
-
-        <button className={styles.buttonSecondary} onClick={refreshMovies}>
-          Refresh
-        </button>
+      <div style={chipRowStyle}>
+        {moodSignals.map((signal) => (
+          <span key={signal} className={styles.tag}>
+            {signal}
+          </span>
+        ))}
       </div>
 
-      <Card>
+      <section className={styles.moviePanel}>
         {loading ? (
-          <p>Loading...</p>
-        ) : movies.length > 0 ? (
-          <>
-            <h2 className={styles.sectionTitle}>🎬 Your Picks Today</h2>
+          <div style={panelStyle}>
+            <div className={styles.statePanel}>
+              <span className={styles.loadingIcon} aria-hidden="true" />
+              <p>Building your movie queue...</p>
+            </div>
 
-            <div className={styles.grid}>
-              {movies.map((movie, index) => (
-                <div key={index} className={styles.movieCard}>
-                  <div className={styles.posterShell}>
-                    {posterUrl(movie.poster_path) ? (
-                      <img src={posterUrl(movie.poster_path)} alt={movie.title} />
-                    ) : (
-                      <div className={styles.posterFallback}>
-                        <span>FitIntel Pick</span>
-                      </div>
-                    )}
-
-                    <span className={styles.rank}>0{index + 1}</span>
-
-                    <span className={styles.matchScore}>
-                      {getMatchScore(movie)}% match
-                    </span>
+            <div className={styles.grid} aria-hidden="true">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className={styles.movieCard}>
+                  <div className={styles.posterFallback}>
+                    <span>Loading</span>
                   </div>
-
                   <div className={styles.movieInfo}>
-                    <strong>{movie.title}</strong>
-
-                    <div className={styles.metaRow}>
-                      <span>
-                        {movie.release_date
-                          ? movie.release_date.slice(0, 4)
-                          : "N/A"}
-                      </span>
-                      <span>
-                        {movie.vote_average
-                          ? `${movie.vote_average.toFixed(1)}/10`
-                          : "No rating"}
-                      </span>
-                    </div>
-
-                    <div className={styles.tags}>
-                      {movie.genre_ids?.slice(0, 2).map((g) => (
-                        <span key={g} className={styles.tag}>
-                          {GENRE_MAP[g] || "Other"}
-                        </span>
-                      ))}
-                    </div>
-
-                    {movie.overview && (
-                      <p className={styles.description}>
-                        {movie.overview.slice(0, 100)}...
-                      </p>
-                    )}
-
-                    <div className={styles.reason}>
-                      {movie.vote_average > 8
-                        ? "⭐ Critically acclaimed & high-rated"
-                        : "🎯 Aligned with your current mood pattern"}
-                    </div>
+                    <span className={styles.tag}>Finding matches</span>
+                    <p className={styles.description}>Checking mood, genre, language, and popularity signals.</p>
                   </div>
                 </div>
               ))}
             </div>
-          </>
+          </div>
+        ) : error ? (
+          <div className={styles.errorPanel}>
+            <strong>Unable to load movies</strong>
+            <p>{error}</p>
+          </div>
+        ) : movies.length > 0 ? (
+          <div style={panelStyle}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <p className={styles.panelEyebrow}>Today&apos;s best match</p>
+                <h2 className={styles.sectionTitle}>Start With This</h2>
+              </div>
+              <span className={styles.countBadge}>{movies.length} movies</span>
+            </div>
+
+            {topPick && (
+              <div className={styles.featuredPick}>
+                <div className={styles.featuredPoster}>
+                  {posterUrl(topPick.poster_path) ? (
+                    <img src={posterUrl(topPick.poster_path)} alt={topPick.title} />
+                  ) : (
+                    <div className={styles.posterFallback}>
+                      <span>FitIntel Pick</span>
+                    </div>
+                  )}
+                  <span className={styles.rank}>01</span>
+                </div>
+
+                <div className={styles.featuredInfo}>
+                  <div className={styles.featuredHeader}>
+                    <div>
+                      <p className={styles.panelEyebrow}>Best match today</p>
+                      <h3>{topPick.title}</h3>
+                    </div>
+                    <span className={styles.matchScore}>
+                      <span aria-hidden="true">*</span> {getMatchScore(topPick)}%
+                    </span>
+                  </div>
+
+                  <p className={styles.featuredCopy}>
+                    This movie is ranked first after combining today&apos;s mood fit, productivity fit,
+                    language preference, public rating, and popularity.
+                  </p>
+
+                  <div className={styles.tags}>
+                    <span className={styles.tag}>{getLanguageLabel(topPick)}</span>
+                    {topPick.vote_average && (
+                      <span className={styles.tag}>{topPick.vote_average.toFixed(1)}/10 rating</span>
+                    )}
+                    {topPick.genre_ids?.slice(0, 3).map((genre) => (
+                      <span key={genre} className={styles.tag}>
+                        {GENRE_MAP[genre] || "Popular"}
+                      </span>
+                    ))}
+                  </div>
+
+                  {renderDescription(topPick, getMovieKey(topPick, 0), FEATURED_DESCRIPTION_LIMIT)}
+                </div>
+              </div>
+            )}
+
+            {hindiMovies.length > 0 && (
+              <div style={compactSectionStyle}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <p className={styles.panelEyebrow}>Hindi-first queue</p>
+                    <h2 className={styles.sectionTitle}>Bollywood and Hindi Picks</h2>
+                  </div>
+                  <span className={styles.countBadge}>{hindiMovies.length} movies</span>
+                </div>
+                <div className={styles.grid}>
+                  {hindiMovies.map((movie, index) => renderMovieCard(movie, index + 1))}
+                </div>
+              </div>
+            )}
+
+            {hollywoodMovies.length > 0 && (
+              <div style={compactSectionStyle}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <p className={styles.panelEyebrow}>Global matches</p>
+                    <h2 className={styles.sectionTitle}>Famous Hollywood Matches</h2>
+                  </div>
+                  <span className={styles.countBadge}>{hollywoodMovies.length} movies</span>
+                </div>
+                <div className={styles.grid}>
+                  {hollywoodMovies.map((movie, index) =>
+                    renderMovieCard(movie, hindiMovies.length + index + 1)
+                  )}
+                </div>
+              </div>
+            )}
+
+            {otherMovies.length > 0 && (
+              <div style={compactSectionStyle}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <p className={styles.panelEyebrow}>More to consider</p>
+                    <h2 className={styles.sectionTitle}>Additional Picks</h2>
+                  </div>
+                  <span className={styles.countBadge}>{otherMovies.length} movies</span>
+                </div>
+                <div className={styles.grid}>
+                  {otherMovies.map((movie, index) =>
+                    renderMovieCard(movie, hindiMovies.length + hollywoodMovies.length + index + 1)
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
-          <p>No movies available</p>
+          <div className={styles.statePanel}>
+            <p>No movies available for today&apos;s recommendation.</p>
+          </div>
         )}
-      </Card>
+      </section>
     </div>
   );
 }

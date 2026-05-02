@@ -34,8 +34,8 @@ def _get_daily_row(date=None):
 
 @data_bp.route("/rate")
 def rate():
-    mood = request.args.get("mood")
-    productivity = request.args.get("productivity")
+    mood = float(request.args.get("mood"))
+    productivity = float(request.args.get("productivity"))
     date = request.args.get("date")
 
     if not mood or not productivity:
@@ -82,7 +82,10 @@ def activity():
     if row is None:
         return {"error": "No data for selected date"}, 404
 
-    mood, productivity = predict_day(row)
+    result = predict_day(row)
+    mood = result["mood"]
+    productivity = result["productivity"]
+    
     suggestions = get_activity_suggestions(
         row,
         mood,
@@ -105,46 +108,23 @@ def movies():
     if row is None:
         return {"movies": []}
 
-    # 🔥 GET FILTERS FROM FRONTEND
-    user_filters = {
-        "language": request.args.get("language"),
-        "min_rating": request.args.get("min_rating", type=float),
-        "year_after": request.args.get("year_after", type=int),
-        "genre": request.args.get("genre", type=int),
-    }
-
-    # ✅ CLEAN filters
-    user_filters = {
-        k: v for k, v in user_filters.items()
-        if v not in [None, "", "null", "undefined"]
-    }
-
     print("👉 /movies API called")
-    print("Filters:", user_filters)
 
     try:
-        import io
-        from contextlib import redirect_stdout
+        movies_list = recommend_movies(row)
 
-        movies_list = recommend_movies(row, user_filters)
-        
-        if not user_filters:
-            print("ℹ️ No filters applied")
-            
-        elif user_filters.get("min_rating", 0) >= 9:
-            print("⚠️ Very strict rating filter")
+        print("🔥 FINAL MOVIES LIST:", movies_list)
+        print("🔥 COUNT:", len(movies_list))
 
         return {
-            "movies": movies_list,
-            "filters_used": user_filters
+            "movies": movies_list
         }
 
-    # ✅ FIX 2: PROPER ERROR TRACE
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return {"movies": []}
-    
+        return {"error": str(e)}, 500
+        
 @data_bp.route("/movies/refresh")
 def refresh_movies():
     from ml.features.recommender.cache import clear_cache

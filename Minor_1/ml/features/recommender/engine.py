@@ -1,78 +1,64 @@
-# main pipeline (entry point)
-
-from .fetcher import fetch_movies
+from .fetcher import fetch_movie_pool
 from .ranking import rank_movies
 from .profile import add_to_history
 from .cache import get_today_cache, set_today_cache
-from .config import decide_genre
+from .config import decide_genres
+
 from ml.features.predict_day import predict_day
 
 
-def recommend_movies(row, user_filters=None):
+def recommend_movies(row):
 
-    user_filters = user_filters or {}   # 🔥 safety fix
-
+    # 🔥 Predict mood & productivity
     result = predict_day(row)
-
-    if isinstance(result, tuple):
-        mood, prod = result
-    else:
-        mood = result["mood"]
-        prod = result["productivity"]
+    mood = result["mood"]
+    prod = result["productivity"]
 
     print("\n--- Movie Recommendation Engine ---")
     print(f"Mood: {round(mood,2)} | Productivity: {round(prod,2)}")
 
-    # 🔥 cache with filters
-    cached = get_today_cache(user_filters, mood, prod)
+    # 🎯 Decide genres using ML
+    genres = decide_genres(mood, prod)
+    print("Selected genres:", genres)
+
+    # 🔥 Cache (based only on mood+prod)
+    cached = get_today_cache(genres)
     if cached:
-        print("Using cached recommendations")
+        print("✅ Using cached recommendations")
         return cached
 
-    # 🔥 user genre override
-    if user_filters.get("genre"):
-        genres = [user_filters["genre"]]
-        print("Using USER genre:", genres)
-    else:
-        genres = decide_genre(mood, prod)
-        print("Selected genres (ML):", genres)
+    # 🎬 Fetch large pool
+    pool = fetch_movie_pool(genres)
 
-    movies = fetch_movies(genres, user_filters)
+    if not pool:
+        print("⚠️ No movies fetched, using fallback")
+        return [
+            {"title": "Inception", "vote_average": 8.8},
+            {"title": "Interstellar", "vote_average": 8.6},
+            {"title": "The Dark Knight", "vote_average": 9.0},
+        ]
 
-    if not movies:
-        print("⚠️ No movies found, trying fallback...")
+    print(f"📦 Pool size: {len(pool)}")
 
-        # fallback 1: remove filters
-        movies = fetch_movies(genres, {})
+    # 🎯 Rank movies
+    ranked = rank_movies(pool, mood, prod)
 
-        # fallback 2: switch genre
-        if not movies:
-            movies = fetch_movies([28], {})  # action fallback
+    # Return a broad set so the UI has enough Hindi and famous English picks.
+    final = ranked[:30]
 
-        # fallback 3: final safety
-        if not movies:
-            return [
-                {"title": "Inception", "vote_average": 8.8},
-                {"title": "Interstellar", "vote_average": 8.6},
-                {"title": "The Dark Knight", "vote_average": 9.0},
-            ]
+    print("🔥 Returning top:", len(final))
 
-    ranked = rank_movies(movies, mood, prod)
-    final = ranked[:5]
-
-    print("Genres:", genres)
-    print("Filters:", user_filters)
-    print("Fetched count:", len(movies))
-
+    # 🎯 Save history
     for m in final:
         add_to_history(m)
 
-    if final:
-        set_today_cache(user_filters, mood, prod, final)
+    # 💾 Cache results
+    set_today_cache(genres, final)
 
     return final
 
 
+# Debug run
 if __name__ == "__main__":
     import pandas as pd
 
@@ -83,4 +69,4 @@ if __name__ == "__main__":
 
     print("\n🎬 Debug Output:\n")
     for m in movies:
-        print(m["title"])
+        print(m.get("title"))

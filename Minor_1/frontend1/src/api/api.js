@@ -16,6 +16,7 @@ const fetchJson = async (url, options = {}, timeout = REQUEST_TIMEOUT) => {
 
   try {
     const res = await fetch(url, {
+      cache: "no-store",
       ...options,
       signal: controller.signal,
     });
@@ -141,6 +142,60 @@ export const getAlerts = async (date) => {
   }
 };
 
+export const getHeartAlertConfig = async () => {
+  try {
+    const res = await fetchJson(`${BASE_URL}/heart-alert/config`);
+    return res.ok ? res.data : null;
+  } catch (err) {
+    console.error("Error fetching heart alert config:", err);
+    return null;
+  }
+};
+
+export const checkHeartAlert = async (payload) => {
+  try {
+    const res = await fetchJson(`${BASE_URL}/heart-alert/check`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    return res.ok ? res.data : { error: true, message: res.data?.error || "Alert check failed" };
+  } catch (err) {
+    console.error("Error checking heart alert:", err);
+    return { error: true, message: "Alert check failed" };
+  }
+};
+
+export const acknowledgeHeartAlert = async (alertId) => {
+  try {
+    const res = await fetchJson(`${BASE_URL}/heart-alert/acknowledge`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ alertId }),
+    });
+
+    return res.ok ? res.data : { error: true, message: res.data?.error || "Could not acknowledge alert" };
+  } catch (err) {
+    console.error("Error acknowledging heart alert:", err);
+    return { error: true, message: "Could not acknowledge alert" };
+  }
+};
+
+export const getHeartAlertStatus = async (alertId) => {
+  try {
+    const res = await fetchJson(`${BASE_URL}/heart-alert/status/${encodeURIComponent(alertId)}`);
+    return res.ok ? res.data : null;
+  } catch (err) {
+    console.error("Error fetching heart alert status:", err);
+    return null;
+  }
+};
+
 // Heart rate (hourly)
 export const getHRData = async (date) => {
   try {
@@ -160,5 +215,25 @@ export const getHRMinute = async (date) => {
   } catch (err) {
     console.error(err);
     return [];
+  }
+};
+
+export const getLatestHeartRate = async () => {
+  try {
+    const res = await fetchJson(`${BASE_URL}/hr-latest?t=${Date.now()}`);
+    return res.ok ? res.data : null;
+  } catch (err) {
+    console.error("Error fetching latest heart rate:", err);
+    return null;
+  }
+};
+
+export const getMovieProfile = async () => {
+  try {
+    const res = await fetch("http://127.0.0.1:5000/movies/profile");
+    return await res.json();
+  } catch (err) {
+    console.error(err);
+    return { liked: [], disliked: [], history: [] };
   }
 };

@@ -1,17 +1,22 @@
+from contextlib import redirect_stdout
 from flask import Blueprint, request
-import pandas as pd
+import io
 import os
-from ml.features.predict_day import predict_day
+import pandas as pd
+
 from backend.config import DATA_DIR
+from ml.features.predict_day import predict_day
 
 
 predict_bp = Blueprint("predict", __name__)
+
 
 def _clean_date(date):
     if not date or date in {"undefined", "null"}:
         return None
 
     return str(date).strip()
+
 
 @predict_bp.route("/predict")
 def predict():
@@ -28,10 +33,14 @@ def predict():
 
     row = df.tail(1).iloc[0]
 
-    # ✅ pass row to ML (important)
-    result = predict_day(row)    
+    # predict_day prints a console report; keep this endpoint JSON-only and
+    # avoid Windows console encoding crashes from decorative characters.
+    with redirect_stdout(io.StringIO()):
+        result = predict_day(row)
+
     print("Requested date:", date)
     print("Available dates:", df["date"].unique())
+
     return {
     "stress": result["stress"],
     "productivity": round(result["productivity"], 2),

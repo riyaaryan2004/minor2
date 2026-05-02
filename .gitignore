@@ -44,7 +44,7 @@ yarn-error.log*
 # ========================
 .env
 .env.*
-#token.txt
+token.txt
 
 # ========================
 # ML / Model Files

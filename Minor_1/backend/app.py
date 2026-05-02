@@ -8,6 +8,7 @@ from backend.routes.auth_routes import auth_bp
 from backend.routes.data_routes import data_bp
 from backend.routes.predict_routes import predict_bp
 from backend.routes.hr_routes import hr_bp
+from backend.routes.heart_alert_routes import heart_alert_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -16,6 +17,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(data_bp)
 app.register_blueprint(predict_bp)
 app.register_blueprint(hr_bp)
+app.register_blueprint(heart_alert_bp)
 
 @app.route("/")
 def home():

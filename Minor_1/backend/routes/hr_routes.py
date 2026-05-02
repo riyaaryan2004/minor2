@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 import pandas as pd
 import os
+from datetime import datetime
 from backend.config import DATA_DIR
 from backend.services.token_service import get_token
 from ml.features.hr_live import get_intraday_hr
@@ -48,3 +49,49 @@ def hr_minute():
     data = get_intraday_hr(token, date)
 
     return [{"x": i, "hr": d["hr"]} for i, d in enumerate(data)]
+
+
+@hr_bp.route("/hr-latest")
+def hr_latest():
+    date = _clean_date(request.args.get("date"))
+    token = get_token()
+    checked_at = datetime.now().strftime("%H:%M:%S")
+
+    if not token:
+        return {"error": "Missing token"}, 400
+
+    if not date:
+        date = datetime.now().strftime("%Y-%m-%d")
+
+    try:
+        data = get_intraday_hr(token, date)
+    except Exception as exc:
+        data = []
+
+    if not data:
+        hourly = pd.read_csv(os.path.join(DATA_DIR, "hourly_data.csv"))
+        hourly["date"] = hourly["date"].astype(str).str.strip()
+        hourly = hourly[(hourly["date"] == date) & hourly["avg_hr"].notna()]
+
+        if hourly.empty:
+            return {"error": "No live heart-rate data available", "date": date}, 404
+
+        latest_hour = hourly.tail(1).iloc[0]
+        return {
+            "date": date,
+            "time": f"{int(latest_hour['hour']):02d}:00",
+            "hr": round(float(latest_hour["avg_hr"]), 1),
+            "points": len(hourly),
+            "source": "saved-hourly",
+            "checkedAt": checked_at,
+        }
+
+    latest = data[-1]
+    return {
+        "date": date,
+        "time": latest["time"],
+        "hr": latest["hr"],
+        "points": len(data),
+        "source": "fitbit-live",
+        "checkedAt": checked_at,
+    }

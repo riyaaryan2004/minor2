@@ -1,0 +1,767 @@
+{
+    "2026-05-02_{}_5.4_4.1": [
+        {
+            "adult": false,
+            "backdrop_path": "/67HggiWaP9ZLv5sPYmyRV37yAJM.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 13,
+            "title": "Forrest Gump",
+            "original_language": "en",
+            "original_title": "Forrest Gump",
+            "overview": "A man with a low IQ has accomplished great things in his life and been present during significant historic events\u2014in each case, far exceeding what anyone imagined he could do. But despite all he has achieved, his one true love eludes him.",
+            "popularity": 31.7845,
+            "poster_path": "/Cw4hIUIAmSYfK9QfaUW5igp9La.jpg",
+            "release_date": "1994-06-23",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.464,
+            "vote_count": 29614
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/6N5d02quKqMKqvTpOdFmBDy9scY.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 19404,
+            "title": "Dilwale Dulhania Le Jayenge",
+            "original_language": "hi",
+            "original_title": "\u0926\u093f\u0932\u0935\u093e\u0932\u0947 \u0926\u0941\u0932\u094d\u0939\u0928\u093f\u092f\u093e \u0932\u0947 \u091c\u093e\u092f\u0947\u0902\u0917\u0947",
+            "overview": "Raj is a rich, carefree, happy-go-lucky second generation NRI. Simran is the daughter of Chaudhary Baldev Singh, who in spite of being an NRI is very strict about adherence to Indian values. Simran has left for India to be married to her childhood fianc\u00e9. Raj leaves for India with a mission at his hands, to claim his lady love under the noses of her whole family. Thus begins a saga.",
+            "popularity": 16.2816,
+            "poster_path": "/2CAL2433ZeIihfX1Hb2139CX0pW.jpg",
+            "release_date": "1995-10-20",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.5,
+            "vote_count": 4579
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/xyWKrni8WrYzqn7ztvI5nIY0h62.jpg",
+            "genre_ids": [
+                35,
+                10749
+            ],
+            "id": 1181678,
+            "title": "\u00bfQuieres ser mi hijo?",
+            "original_language": "en",
+            "original_title": "\u00bfQuieres ser mi hijo?",
+            "overview": "Lu, a conformist woman in her forties, learns that her 15-year partner has been having extramarital affairs. Starting from scratch, she gets involved in an unexpected relationship with a young womanizer.",
+            "popularity": 12.4544,
+            "poster_path": "/9GuvODahvuFqdhuZ16aBLR4UJoP.jpg",
+            "release_date": "2023-09-21",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.443,
+            "vote_count": 324
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/nlPCdZlHtRNcF6C9hzUH4ebmV1w.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 313369,
+            "title": "La La Land",
+            "original_language": "en",
+            "original_title": "La La Land",
+            "overview": "Mia, an aspiring actress, serves lattes to movie stars in between auditions and Sebastian, a jazz musician, scrapes by playing cocktail party gigs in dingy bars, but as success mounts they are faced with decisions that begin to fray the fragile fabric of their love affair, and the dreams they worked so hard to maintain in each other threaten to rip them apart.",
+            "popularity": 24.1947,
+            "poster_path": "/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg",
+            "release_date": "2016-12-01",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.898,
+            "vote_count": 18027
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/yvPbncYhMu9FfTjDhq0N5lgnVkO.jpg",
+            "genre_ids": [
+                35,
+                10749,
+                18
+            ],
+            "id": 4951,
+            "title": "10 Things I Hate About You",
+            "original_language": "en",
+            "original_title": "10 Things I Hate About You",
+            "overview": "On the first day at his new school, Cameron instantly falls for Bianca, the gorgeous girl of his dreams. The only problem is that Bianca is forbidden to date until her ill-tempered, completely un-dateable older sister Kat goes out, too. In an attempt to solve his problem, Cameron singles out the only guy who could possibly be a match for Kat: a mysterious bad boy with a nasty reputation of his own.",
+            "popularity": 14.3387,
+            "poster_path": "/ujERk3aKABXU3NDXOAxEQYTHe9A.jpg",
+            "release_date": "1999-03-30",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.589,
+            "vote_count": 8861
+        }
+    ],
+    "2026-05-02_{\"language\": \"it\"}_5.4_4.1": [
+        {
+            "adult": false,
+            "backdrop_path": "/32pvxFiXNo2TdNpBiuHN8k2Mr4K.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 11010,
+            "title": "The Postman",
+            "original_language": "it",
+            "original_title": "Il postino",
+            "overview": "Simple Italian postman learns to love poetry while delivering mail to a famous poet; he uses this to woo local beauty Beatrice.",
+            "popularity": 2.3931,
+            "poster_path": "/cUaCpjVDefYShKyLmkcDsiPaBHn.jpg",
+            "release_date": "1994-09-22",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.917,
+            "vote_count": 1213
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/gyoYWae5mqg6MjbwKu1AE9bgGMt.jpg",
+            "genre_ids": [
+                18,
+                10749,
+                35
+            ],
+            "id": 49687,
+            "title": "Marriage Italian Style",
+            "original_language": "it",
+            "original_title": "Matrimonio all'italiana",
+            "overview": "During the bombing of Naples in World War II, a cynical businessman helps a naive prostitute, who spends the next two decades desperate to have him reciprocate her feelings.",
+            "popularity": 1.8481,
+            "poster_path": "/1VVQFXwr4i6QSAoPnCs9UmGTUVw.jpg",
+            "release_date": "1964-12-18",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.713,
+            "vote_count": 539
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/jM486vasW37coo58V7siUPEZKco.jpg",
+            "genre_ids": [
+                35,
+                10749,
+                10752
+            ],
+            "id": 38251,
+            "title": "Mediterraneo",
+            "original_language": "it",
+            "original_title": "Mediterraneo",
+            "overview": "Greek Sea, World War II. An Italian ship leaves a handful of soldiers in a little island; their mission is to spot enemy ships and to hold the island in case of attack. The village of the island seems abandoned and there isn't a single enemy in sight, so the soldiers begin to relax a little. Things change when their ship is hit and destroyed by the enemy, and the soldiers find themselves abandoned there.",
+            "popularity": 1.7952,
+            "poster_path": "/omFU47TZSR7xAAZcDHKM48SmVwe.jpg",
+            "release_date": "1991-02-02",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.622,
+            "vote_count": 1064
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/i7awVEzUulqDX35EDKtXijRCpzM.jpg",
+            "genre_ids": [
+                35,
+                10749
+            ],
+            "id": 42801,
+            "title": "Yesterday, Today and Tomorrow",
+            "original_language": "it",
+            "original_title": "Ieri, oggi, domani",
+            "overview": "Three tales of very different women using their sexuality as a means to getting what they want.",
+            "popularity": 1.9291,
+            "poster_path": "/vydCOfhrnKqMSbYcI0cUkkKuCND.jpg",
+            "release_date": "1963-12-21",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.435,
+            "vote_count": 470
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/dFXGxxVSwb9tYNfKMeFnxORmBlt.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 37916,
+            "title": "Swept Away",
+            "original_language": "it",
+            "original_title": "Travolti da un insolito destino nell'azzurro mare d'agosto",
+            "overview": "A spoiled rich woman and a brutish Communist deckhand become stranded alone on a desert island after venturing away from their cruise.",
+            "popularity": 1.6945,
+            "poster_path": "/8bkEUeQWVFBk3HE4qhluDarTMDj.jpg",
+            "release_date": "1974-12-18",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.39,
+            "vote_count": 337
+        }
+    ],
+    "2026-05-02_{\"language\": \"hi\"}_5.4_4.1": [
+        {
+            "adult": false,
+            "backdrop_path": "/6N5d02quKqMKqvTpOdFmBDy9scY.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 19404,
+            "title": "Dilwale Dulhania Le Jayenge",
+            "original_language": "hi",
+            "original_title": "\u0926\u093f\u0932\u0935\u093e\u0932\u0947 \u0926\u0941\u0932\u094d\u0939\u0928\u093f\u092f\u093e \u0932\u0947 \u091c\u093e\u092f\u0947\u0902\u0917\u0947",
+            "overview": "Raj is a rich, carefree, happy-go-lucky second generation NRI. Simran is the daughter of Chaudhary Baldev Singh, who in spite of being an NRI is very strict about adherence to Indian values. Simran has left for India to be married to her childhood fianc\u00e9. Raj leaves for India with a mission at his hands, to claim his lady love under the noses of her whole family. Thus begins a saga.",
+            "popularity": 16.2816,
+            "poster_path": "/2CAL2433ZeIihfX1Hb2139CX0pW.jpg",
+            "release_date": "1995-10-20",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.5,
+            "vote_count": 4579
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/uUVXEEyMsyWxrcbmAppUCYg6egV.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 1163194,
+            "title": "Lost Ladies",
+            "original_language": "hi",
+            "original_title": "\u0932\u093e\u092a\u0924\u093e \u0932\u0947\u0921\u0940\u091c\u093c",
+            "overview": "In 2001, somewhere in rural India, two young brides get accidentally swapped on a train. In the ensuing chaos, they both encounter a host of colourful characters, resulting in hilarious and unexpected consequences.",
+            "popularity": 1.2385,
+            "poster_path": "/cGG5hCwPnMvuKzvUBnxo5y3DcVM.jpg",
+            "release_date": "2024-03-01",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.783,
+            "vote_count": 145
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/dVUBKQMehxVnEQMpcOPw3OQqNMF.jpg",
+            "genre_ids": [
+                18,
+                10749,
+                35
+            ],
+            "id": 127501,
+            "title": "Barfi!",
+            "original_language": "hi",
+            "original_title": "\u092c\u0930\u094d\u092b\u0940!",
+            "overview": "The heartwarming tale of Barfi, a charming deaf-mute young man from 1970s Darjeeling, and two unalike women who can't help but fall for him.",
+            "popularity": 1.8092,
+            "poster_path": "/5cJIx2zKjDoUtPSliou23xsReb1.jpg",
+            "release_date": "2012-09-13",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.607,
+            "vote_count": 365
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/v8AmfO3BW4NT4SiNnsocKMzexOR.jpg",
+            "genre_ids": [
+                18,
+                35,
+                10749
+            ],
+            "id": 61202,
+            "title": "Zindagi Na Milegi Dobara",
+            "original_language": "hi",
+            "original_title": "\u091c\u093c\u093f\u0928\u094d\u0926\u0917\u0940 \u0928\u093e \u092e\u093f\u0932\u0947\u0917\u0940 \u0926\u094b\u092c\u093e\u0930\u093e",
+            "overview": "Three friends who were inseparable in childhood decide to go on a three-week-long bachelor road trip to Spain, in order to re-establish their bond and explore thrilling adventures, before one of them gets married. What will they learn of themselves and each other during the adventure?",
+            "popularity": 2.7248,
+            "poster_path": "/hKO9O715wYxjkQSEv47giCYcyO8.jpg",
+            "release_date": "2011-07-15",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.593,
+            "vote_count": 404
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/iQJZMLr5cdn7Al2Av4V1VEzPDoQ.jpg",
+            "genre_ids": [
+                10749,
+                18,
+                35
+            ],
+            "id": 11854,
+            "title": "Kuch Kuch Hota Hai",
+            "original_language": "hi",
+            "original_title": "\u0915\u0941\u091b \u0915\u0941\u091b \u0939\u094b\u0924\u093e \u0939\u0948",
+            "overview": "Per her mother's last wish, an 8 year old girl sets out to reunite her father with his college best friend who was in love with him.",
+            "popularity": 2.5851,
+            "poster_path": "/5FmtHHDGPofW5Zjns1EM1D8503c.jpg",
+            "release_date": "1998-10-16",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.479,
+            "vote_count": 427
+        }
+    ],
+    "2026-05-02_{\"language\": \"en\"}_5.4_4.1": [
+        {
+            "adult": false,
+            "backdrop_path": "/67HggiWaP9ZLv5sPYmyRV37yAJM.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 13,
+            "title": "Forrest Gump",
+            "original_language": "en",
+            "original_title": "Forrest Gump",
+            "overview": "A man with a low IQ has accomplished great things in his life and been present during significant historic events\u2014in each case, far exceeding what anyone imagined he could do. But despite all he has achieved, his one true love eludes him.",
+            "popularity": 31.7845,
+            "poster_path": "/Cw4hIUIAmSYfK9QfaUW5igp9La.jpg",
+            "release_date": "1994-06-23",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.464,
+            "vote_count": 29614
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/xyWKrni8WrYzqn7ztvI5nIY0h62.jpg",
+            "genre_ids": [
+                35,
+                10749
+            ],
+            "id": 1181678,
+            "title": "\u00bfQuieres ser mi hijo?",
+            "original_language": "en",
+            "original_title": "\u00bfQuieres ser mi hijo?",
+            "overview": "Lu, a conformist woman in her forties, learns that her 15-year partner has been having extramarital affairs. Starting from scratch, she gets involved in an unexpected relationship with a young womanizer.",
+            "popularity": 12.4544,
+            "poster_path": "/9GuvODahvuFqdhuZ16aBLR4UJoP.jpg",
+            "release_date": "2023-09-21",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.443,
+            "vote_count": 324
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/nlPCdZlHtRNcF6C9hzUH4ebmV1w.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 313369,
+            "title": "La La Land",
+            "original_language": "en",
+            "original_title": "La La Land",
+            "overview": "Mia, an aspiring actress, serves lattes to movie stars in between auditions and Sebastian, a jazz musician, scrapes by playing cocktail party gigs in dingy bars, but as success mounts they are faced with decisions that begin to fray the fragile fabric of their love affair, and the dreams they worked so hard to maintain in each other threaten to rip them apart.",
+            "popularity": 24.1947,
+            "poster_path": "/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg",
+            "release_date": "2016-12-01",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.898,
+            "vote_count": 18027
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/2CisgvF2HcIVnbMZbSjASCtSgEb.jpg",
+            "genre_ids": [
+                12,
+                10751,
+                14,
+                35,
+                10749
+            ],
+            "id": 2493,
+            "title": "The Princess Bride",
+            "original_language": "en",
+            "original_title": "The Princess Bride",
+            "overview": "In this enchantingly cracked fairy tale, the beautiful Princess Buttercup and the dashing Westley must overcome staggering odds to find happiness amid six-fingered swordsmen, murderous princes, Sicilians and rodents of unusual size. But even death can't stop these true lovebirds from triumphing.",
+            "popularity": 12.2288,
+            "poster_path": "/2FC9L9MrjBoGHYjYZjdWQdopVYb.jpg",
+            "release_date": "1987-09-25",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.697,
+            "vote_count": 5057
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/yvPbncYhMu9FfTjDhq0N5lgnVkO.jpg",
+            "genre_ids": [
+                35,
+                10749,
+                18
+            ],
+            "id": 4951,
+            "title": "10 Things I Hate About You",
+            "original_language": "en",
+            "original_title": "10 Things I Hate About You",
+            "overview": "On the first day at his new school, Cameron instantly falls for Bianca, the gorgeous girl of his dreams. The only problem is that Bianca is forbidden to date until her ill-tempered, completely un-dateable older sister Kat goes out, too. In an attempt to solve his problem, Cameron singles out the only guy who could possibly be a match for Kat: a mysterious bad boy with a nasty reputation of his own.",
+            "popularity": 14.3387,
+            "poster_path": "/ujERk3aKABXU3NDXOAxEQYTHe9A.jpg",
+            "release_date": "1999-03-30",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.589,
+            "vote_count": 8860
+        }
+    ],
+    "2026-05-02_{\"language\": \"en\", \"min_rating\": 8.0}_5.4_4.1": [
+        {
+            "adult": false,
+            "backdrop_path": "/67HggiWaP9ZLv5sPYmyRV37yAJM.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 13,
+            "title": "Forrest Gump",
+            "original_language": "en",
+            "original_title": "Forrest Gump",
+            "overview": "A man with a low IQ has accomplished great things in his life and been present during significant historic events\u2014in each case, far exceeding what anyone imagined he could do. But despite all he has achieved, his one true love eludes him.",
+            "popularity": 31.7845,
+            "poster_path": "/Cw4hIUIAmSYfK9QfaUW5igp9La.jpg",
+            "release_date": "1994-06-23",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.464,
+            "vote_count": 29614
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/xyWKrni8WrYzqn7ztvI5nIY0h62.jpg",
+            "genre_ids": [
+                35,
+                10749
+            ],
+            "id": 1181678,
+            "title": "\u00bfQuieres ser mi hijo?",
+            "original_language": "en",
+            "original_title": "\u00bfQuieres ser mi hijo?",
+            "overview": "Lu, a conformist woman in her forties, learns that her 15-year partner has been having extramarital affairs. Starting from scratch, she gets involved in an unexpected relationship with a young womanizer.",
+            "popularity": 12.4544,
+            "poster_path": "/9GuvODahvuFqdhuZ16aBLR4UJoP.jpg",
+            "release_date": "2023-09-21",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.443,
+            "vote_count": 324
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/kSlO1pHpwQfPQdgVPr7dJiJNtJ8.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 3082,
+            "title": "Modern Times",
+            "original_language": "en",
+            "original_title": "Modern Times",
+            "overview": "A bumbling tramp desires to build a home with a young woman, yet is thwarted time and time again by his lack of experience and habit of being in the wrong place at the wrong time..",
+            "popularity": 6.7171,
+            "poster_path": "/7uoiKOEjxBBW0AgDGQWrlfGQ90w.jpg",
+            "release_date": "1936-02-05",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.3,
+            "vote_count": 4062
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/qhKMAWxuu4TXCJCWVMqfveqanMP.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 901,
+            "title": "City Lights",
+            "original_language": "en",
+            "original_title": "City Lights",
+            "overview": "A tramp falls in love with a beautiful blind flower girl. His on-and-off friendship with a wealthy man allows him to be the girl's benefactor and suitor.",
+            "popularity": 6.0848,
+            "poster_path": "/bXNvzjULc9jrOVhGfjcc64uKZmZ.jpg",
+            "release_date": "1931-02-06",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.251,
+            "vote_count": 2439
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/vRTKNKNWLZ22fAgPa5kY8wT2b1F.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 284,
+            "title": "The Apartment",
+            "original_language": "en",
+            "original_title": "The Apartment",
+            "overview": "Bud Baxter is a minor clerk in a huge New York insurance company, until he discovers a quick way to climb the corporate ladder. He lends out his apartment to the executives as a place to take their mistresses. Although he often has to deal with the aftermath of their visits, one night he's left with a major problem to solve.",
+            "popularity": 5.8672,
+            "poster_path": "/hhSRt1KKfRT0yEhEtRW3qp31JFU.jpg",
+            "release_date": "1960-06-21",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.187,
+            "vote_count": 2623
+        }
+    ],
+    "2026-05-02_{\"language\": \"ja\", \"min_rating\": 8.0}_5.4_4.1": [
+        {
+            "adult": false,
+            "backdrop_path": "/67HggiWaP9ZLv5sPYmyRV37yAJM.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 13,
+            "title": "Forrest Gump",
+            "original_language": "en",
+            "original_title": "Forrest Gump",
+            "overview": "A man with a low IQ has accomplished great things in his life and been present during significant historic events\u2014in each case, far exceeding what anyone imagined he could do. But despite all he has achieved, his one true love eludes him.",
+            "popularity": 31.7845,
+            "poster_path": "/Cw4hIUIAmSYfK9QfaUW5igp9La.jpg",
+            "release_date": "1994-06-23",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.464,
+            "vote_count": 29614
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/6N5d02quKqMKqvTpOdFmBDy9scY.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 19404,
+            "title": "Dilwale Dulhania Le Jayenge",
+            "original_language": "hi",
+            "original_title": "\u0926\u093f\u0932\u0935\u093e\u0932\u0947 \u0926\u0941\u0932\u094d\u0939\u0928\u093f\u092f\u093e \u0932\u0947 \u091c\u093e\u092f\u0947\u0902\u0917\u0947",
+            "overview": "Raj is a rich, carefree, happy-go-lucky second generation NRI. Simran is the daughter of Chaudhary Baldev Singh, who in spite of being an NRI is very strict about adherence to Indian values. Simran has left for India to be married to her childhood fianc\u00e9. Raj leaves for India with a mission at his hands, to claim his lady love under the noses of her whole family. Thus begins a saga.",
+            "popularity": 16.2816,
+            "poster_path": "/2CAL2433ZeIihfX1Hb2139CX0pW.jpg",
+            "release_date": "1995-10-20",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.5,
+            "vote_count": 4579
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/xyWKrni8WrYzqn7ztvI5nIY0h62.jpg",
+            "genre_ids": [
+                35,
+                10749
+            ],
+            "id": 1181678,
+            "title": "\u00bfQuieres ser mi hijo?",
+            "original_language": "en",
+            "original_title": "\u00bfQuieres ser mi hijo?",
+            "overview": "Lu, a conformist woman in her forties, learns that her 15-year partner has been having extramarital affairs. Starting from scratch, she gets involved in an unexpected relationship with a young womanizer.",
+            "popularity": 12.4544,
+            "poster_path": "/9GuvODahvuFqdhuZ16aBLR4UJoP.jpg",
+            "release_date": "2023-09-21",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.443,
+            "vote_count": 324
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/nlPCdZlHtRNcF6C9hzUH4ebmV1w.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 313369,
+            "title": "La La Land",
+            "original_language": "en",
+            "original_title": "La La Land",
+            "overview": "Mia, an aspiring actress, serves lattes to movie stars in between auditions and Sebastian, a jazz musician, scrapes by playing cocktail party gigs in dingy bars, but as success mounts they are faced with decisions that begin to fray the fragile fabric of their love affair, and the dreams they worked so hard to maintain in each other threaten to rip them apart.",
+            "popularity": 24.1947,
+            "poster_path": "/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg",
+            "release_date": "2016-12-01",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.898,
+            "vote_count": 18027
+        },
+        {
+            "adult": false,
+            "backdrop_path": "/yvPbncYhMu9FfTjDhq0N5lgnVkO.jpg",
+            "genre_ids": [
+                35,
+                10749,
+                18
+            ],
+            "id": 4951,
+            "title": "10 Things I Hate About You",
+            "original_language": "en",
+            "original_title": "10 Things I Hate About You",
+            "overview": "On the first day at his new school, Cameron instantly falls for Bianca, the gorgeous girl of his dreams. The only problem is that Bianca is forbidden to date until her ill-tempered, completely un-dateable older sister Kat goes out, too. In an attempt to solve his problem, Cameron singles out the only guy who could possibly be a match for Kat: a mysterious bad boy with a nasty reputation of his own.",
+            "popularity": 14.3387,
+            "poster_path": "/ujERk3aKABXU3NDXOAxEQYTHe9A.jpg",
+            "release_date": "1999-03-30",
+            "softcore": false,
+            "video": false,
+            "vote_average": 7.589,
+            "vote_count": 8861
+        }
+    ],
+    "2026-05-02_{\"language\": \"fr\", \"min_rating\": 8.0}_5.4_4.1": [
+        {
+            "adult": false,
+            "backdrop_path": null,
+            "genre_ids": [
+                10749,
+                35
+            ],
+            "id": 344602,
+            "title": "Tendre pi\u00e8ge",
+            "original_language": "fr",
+            "original_title": "Tendre pi\u00e8ge",
+            "overview": "The engagement of a young couple is spoiled by the antics of their relatives.",
+            "popularity": 1.2004,
+            "poster_path": null,
+            "release_date": "1996-05-10",
+            "softcore": false,
+            "video": false,
+            "vote_average": 10.0,
+            "vote_count": 1
+        },
+        {
+            "adult": false,
+            "backdrop_path": null,
+            "genre_ids": [
+                35,
+                10749
+            ],
+            "id": 561746,
+            "title": "Good Evening Paris",
+            "original_language": "fr",
+            "original_title": "Bonsoir Paris",
+            "overview": "A foreign pianist who comes to visit Paris is ripped off by a young man and his sister. But he soon falls in love with this one.",
+            "popularity": 0.6228,
+            "poster_path": "/dr7kFPbsiHDwAaNCodfm2vnNmvd.jpg",
+            "release_date": "1956-12-14",
+            "softcore": false,
+            "video": false,
+            "vote_average": 10.0,
+            "vote_count": 1
+        },
+        {
+            "adult": false,
+            "backdrop_path": null,
+            "genre_ids": [
+                35,
+                10749
+            ],
+            "id": 84715,
+            "title": "Loves, Delights and Organs",
+            "original_language": "fr",
+            "original_title": "Coll\u00e8ge Swing",
+            "overview": "The head of a school in a little French country town encourages the playful romances between his young students, as well as a love of jazz music.",
+            "popularity": 0.519,
+            "poster_path": "/lynI5Oc4eanWAiKDCJJuBYdozYB.jpg",
+            "release_date": "1947-05-16",
+            "softcore": false,
+            "video": false,
+            "vote_average": 10.0,
+            "vote_count": 1
+        },
+        {
+            "adult": false,
+            "backdrop_path": null,
+            "genre_ids": [
+                10770,
+                35,
+                10749
+            ],
+            "id": 986897,
+            "title": "Pauvre Eros",
+            "original_language": "fr",
+            "original_title": "Pauvre Eros",
+            "overview": "A man decides to use the classifieds to replace his mistress who left him.",
+            "popularity": 0.4927,
+            "poster_path": "/kA65tsHcHgNhkTwWKv6ASIS409g.jpg",
+            "release_date": "1983-11-10",
+            "softcore": false,
+            "video": false,
+            "vote_average": 10.0,
+            "vote_count": 2
+        },
+        {
+            "adult": false,
+            "backdrop_path": null,
+            "genre_ids": [
+                35,
+                10749
+            ],
+            "id": 931573,
+            "title": "Les Vacances de No\u00ebl",
+            "original_language": "fr",
+            "original_title": "Les Vacances de No\u00ebl",
+            "overview": "Two men, fifty years young, seduce younger women at the Cannes Film Festival and are quite successful as long as there are no youngsters among them.",
+            "popularity": 0.4912,
+            "poster_path": "/jsaWT7l8L4AoyRa3JAikAym4pwV.jpg",
+            "release_date": "2005-06-01",
+            "softcore": false,
+            "video": false,
+            "vote_average": 10.0,
+            "vote_count": 1
+        }
+    ],
+    "2026-05-02_{\"language\": \"hi\", \"min_rating\": 8.0}_5.4_4.1": [
+        {
+            "adult": false,
+            "backdrop_path": "/6N5d02quKqMKqvTpOdFmBDy9scY.jpg",
+            "genre_ids": [
+                35,
+                18,
+                10749
+            ],
+            "id": 19404,
+            "title": "Dilwale Dulhania Le Jayenge",
+            "original_language": "hi",
+            "original_title": "\u0926\u093f\u0932\u0935\u093e\u0932\u0947 \u0926\u0941\u0932\u094d\u0939\u0928\u093f\u092f\u093e \u0932\u0947 \u091c\u093e\u092f\u0947\u0902\u0917\u0947",
+            "overview": "Raj is a rich, carefree, happy-go-lucky second generation NRI. Simran is the daughter of Chaudhary Baldev Singh, who in spite of being an NRI is very strict about adherence to Indian values. Simran has left for India to be married to her childhood fianc\u00e9. Raj leaves for India with a mission at his hands, to claim his lady love under the noses of her whole family. Thus begins a saga.",
+            "popularity": 16.2816,
+            "poster_path": "/2CAL2433ZeIihfX1Hb2139CX0pW.jpg",
+            "release_date": "1995-10-20",
+            "softcore": false,
+            "video": false,
+            "vote_average": 8.5,
+            "vote_count": 4579
+        }
+    ]
+}

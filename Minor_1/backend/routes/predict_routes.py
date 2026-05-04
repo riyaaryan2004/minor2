@@ -1,4 +1,7 @@
+from contextlib import redirect_stdout
 from flask import Blueprint, request, jsonify
+import io
+import os
 import pandas as pd
 import os
 
@@ -16,6 +19,9 @@ def _clean_date(date):
         return None
     return str(date).strip()
 
+# -----------------------------------
+# 📊 EXISTING PREDICT ROUTE
+# -----------------------------------
 
 # -----------------------------------
 # 📊 EXISTING PREDICT ROUTE
@@ -42,6 +48,13 @@ def predict():
         "productivity": round(prod, 2),
         "sleep": round(row["sleep_hours"], 2),
         "mood": round(mood, 2)
+      
+      "suggestions": result["suggestions"],       
+      "day_type": result["day_type"],
+      "primary_action": result["primary_action"],
+      "root_cause": result["root_cause"],
+      "history_insights": result["history_insights"],
+      "daily_goal": result["daily_goal"]
     }
 
 

@@ -6,6 +6,7 @@ import About from "./components/About";
 import Activity from "./components/Activity";
 import Movies from "./components/Movies";
 import FocusEngine from "./components/FocusEngine";
+
 function App() {
   return (
     <Router>
@@ -16,7 +17,7 @@ function App() {
           <Route path="/movies" element={<Movies />} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/about" element={<About />} />
-             <Route path="/focus" element={<FocusEngine />} />
+          <Route path="/focus" element={<FocusEngine />} />
         </Routes>
       </Layout>
     </Router>

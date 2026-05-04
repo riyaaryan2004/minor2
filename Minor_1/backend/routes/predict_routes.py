@@ -1,12 +1,13 @@
 from contextlib import redirect_stdout
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 import io
 import os
 import pandas as pd
 
 from backend.config import DATA_DIR
 from ml.features.predict_day import predict_day
-
+from ml.features.routine_engine import get_task_recommendation
+from ml.features.activity_suggestion import get_activity_suggestions
 
 predict_bp = Blueprint("predict", __name__)
 
@@ -17,6 +18,9 @@ def _clean_date(date):
 
     return str(date).strip()
 
+# -----------------------------------
+# 📊 EXISTING PREDICT ROUTE
+# -----------------------------------
 
 @predict_bp.route("/predict")
 def predict():
@@ -54,3 +58,45 @@ def predict():
     "history_insights": result["history_insights"],
     "daily_goal": result["daily_goal"]
 }
+
+
+
+# -----------------------------------
+# 🚀 NEW FOCUS ENGINE ROUTE
+# -----------------------------------
+@predict_bp.route("/focus", methods=["POST"])
+def focus():
+
+    data = request.json or {}
+    tasks = data.get("tasks", [])
+    date = _clean_date(data.get("date"))
+
+    # ❗ Safety check
+    if not tasks:
+        return {"error": "No tasks provided"}, 400
+
+    df = pd.read_csv(os.path.join(DATA_DIR, "daily_data.csv"))
+    df["date"] = df["date"].astype(str).str.strip()
+
+    if date:
+        df = df[df["date"] == date]
+
+    if df.empty:
+        return {"error": "No data available"}, 404
+
+    row = df.tail(1).iloc[0]
+
+    # 🔥 STEP 1: Prediction
+    mood, prod = predict_day(row)
+
+    # 🔥 STEP 2: Focus Engine
+    result = get_task_recommendation(
+        row=row,
+        mood=mood,
+        productivity=prod,
+        stress=row["stress_index"],
+        tasks=tasks,
+        get_activity_suggestions=get_activity_suggestions
+    )
+
+    return jsonify(result)

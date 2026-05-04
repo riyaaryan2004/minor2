@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 const navItems = [
   { to: "/", label: "Dashboard" },
   { to: "/activity", label: "Activity" },
+  { to: "/focus", label: "Focus Engine" },
   { to: "/movies", label: "Movies" },
   { to: "/alerts", label: "Alerts" },
   { to: "/about", label: "About" },

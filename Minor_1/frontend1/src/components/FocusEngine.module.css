@@ -1,0 +1,135 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 24px;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  min-height: 100vh;
+}
+
+.header {
+  padding: 28px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(76, 29, 149, 0.7));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.kicker {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  font-size: 32px;
+}
+
+.header p {
+  color: #cbd5f5;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 24px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  color: #e2e8f0;
+}
+
+.sectionHeader span {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(34, 211, 238, 0.15);
+  color: #22d3ee;
+}
+
+.taskForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.taskForm input:first-child {
+  padding: 12px;
+  border-radius: 10px;
+  background: #020617;
+  color: white;
+}
+
+.taskRow {
+  display: grid;
+  grid-template-columns: 70px 90px 1fr auto;
+  gap: 10px;
+}
+
+.smallInput,
+.select {
+  padding: 10px;
+  border-radius: 8px;
+  background: #020617;
+  color: white;
+}
+
+.addBtn {
+  padding: 10px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #22d3ee, #a78bfa);
+  border: none;
+  cursor: pointer;
+}
+
+.activities {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activityCard {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(2, 6, 23, 0.9);
+  color: white;
+}
+
+.activityCard span {
+  color: #22d3ee;
+}
+
+.activityCard button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.section button:last-child {
+  padding: 9px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #22d3ee, #a78bfa);
+  border: none;
+}
+
+.resultHighlight {
+  border: 1px solid #22d3ee;
+}
+
+.empty {
+  color: #94a3b8;
+}

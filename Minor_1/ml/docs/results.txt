@@ -1,2 +1,2 @@
-Mood prediction → Lightgbm
-Productivity prediction → Lightgbm
+Mood prediction → RandomForest
+Productivity prediction → RandomForest

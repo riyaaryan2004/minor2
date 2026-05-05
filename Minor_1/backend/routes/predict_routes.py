@@ -42,6 +42,7 @@ def predict():
         "stress": prediction.get("stress"),
         "productivity": round(prediction.get("productivity", 0), 2),
         "sleep": prediction.get("sleep"),
+        "steps": int(row["total_steps"]) if pd.notna(row.get("total_steps")) else None,
         "mood": round(prediction.get("mood", 0), 2),
         "insight": prediction.get("insight"),
 

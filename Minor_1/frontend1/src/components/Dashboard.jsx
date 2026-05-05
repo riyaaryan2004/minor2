@@ -210,7 +210,7 @@ function Dashboard() {
   const metrics = [
     { label: "Stress", rawValue: data.stress, value: formatValue(data.stress), tone: "red", icon: "stress" },
     { label: "Sleep", rawValue: data.sleep, value: formatValue(data.sleep, " hrs"), tone: "blue", icon: "sleep" },
-    { label: "Steps", rawValue: data.steps, value: formatValue(data.steps), tone: "teal", icon: "steps" },
+    { label: "Steps", rawValue: data.steps ?? data.total_steps, value: formatValue(data.steps ?? data.total_steps), tone: "teal", icon: "steps" },
     { label: "Productivity", rawValue: data.productivity, value: formatValue(data.productivity), tone: "green", icon: "productivity" },
     { label: "Mood", rawValue: data.mood, value: formatValue(data.mood), tone: "pink", icon: "mood" },
   ];

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./FocusEngine.module.css";
 
 const FocusEngine = () => {
@@ -10,6 +10,19 @@ const FocusEngine = () => {
 
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // 🔥 LOAD TASKS (on mount)
+  useEffect(() => {
+    const savedTasks = localStorage.getItem("tasks");
+    if (savedTasks) {
+      setTasks(JSON.parse(savedTasks));
+    }
+  }, []);
+
+  // 🔥 SAVE TASKS (on change)
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
 
   const addTask = () => {
     if (!taskName.trim()) return;
@@ -52,6 +65,12 @@ const FocusEngine = () => {
     setLoading(false);
   };
 
+  // 🔥 OPTIONAL CLEAR BUTTON
+  const clearTasks = () => {
+    setTasks([]);
+    localStorage.removeItem("tasks");
+  };
+
   return (
     <div className={styles.wrapper}>
       {/* HEADER */}
@@ -59,8 +78,7 @@ const FocusEngine = () => {
         <p className={styles.kicker}>Adaptive Focus Engine</p>
         <h1>Smart Task Recommendation</h1>
         <p>
-          Add your tasks and let the system decide what you should do based on
-          your current cognitive state.
+          Add your tasks and let the system decide optimal order based on your cognitive state.
         </p>
       </div>
 
@@ -128,9 +146,19 @@ const FocusEngine = () => {
             ))}
           </div>
 
+          {/* BUTTONS */}
           <button onClick={handleSubmit} disabled={loading}>
             {loading ? "Analyzing..." : "Get Recommendation"}
           </button>
+
+          {tasks.length > 0 && (
+            <button
+              onClick={clearTasks}
+              style={{ marginTop: "10px", background: "#ef4444" }}
+            >
+              Clear Tasks
+            </button>
+          )}
         </div>
 
         {/* RIGHT */}
@@ -145,7 +173,7 @@ const FocusEngine = () => {
             </p>
           ) : (
             <>
-              {/* MAIN TASK */}
+              {/* BEST TASK */}
               <div className={`${styles.activityCard} ${styles.resultHighlight}`}>
                 <span>⚡</span>
                 <p>
@@ -155,7 +183,15 @@ const FocusEngine = () => {
                 </p>
               </div>
 
-              {/* SUCCESS PROBABILITY */}
+              {/* INSIGHT */}
+              {result.insight && (
+                <div className={styles.activityCard}>
+                  <span>🧠</span>
+                  <p>{result.insight}</p>
+                </div>
+              )}
+
+              {/* SUCCESS */}
               <div className={styles.activityCard}>
                 <span>📊</span>
                 <p>
@@ -164,21 +200,36 @@ const FocusEngine = () => {
                 </p>
               </div>
 
-              {/* BURNOUT RISK */}
+              {/* BURNOUT */}
               <div className={styles.activityCard}>
                 <span>🔥</span>
-                <p>
+                <p
+                  className={
+                    styles[result.burnout_risk?.toLowerCase()] || ""
+                  }
+                >
                   <strong>Burnout Risk:</strong>{" "}
                   {result.burnout_risk || "N/A"}
                 </p>
               </div>
 
-              {/* CONFIDENCE */}
-              <div className={styles.activityCard}>
-                <span>📈</span>
-                <p>
-                  <strong>Confidence:</strong> {result.confidence}%
-                </p>
+              {/* TASK ORDER */}
+              <div>
+                <h3 style={{ color: "#cbd5f5", marginTop: "10px" }}>
+                  🗂 Suggested Order
+                </h3>
+
+                <div className={styles.activities}>
+                  {result.task_order?.map((t, i) => (
+                    <div key={i} className={styles.activityCard}>
+                      <span>{i + 1}</span>
+                      <p>
+                        <strong>{t.task}</strong>
+                        <br />
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </>
           )}

@@ -3,13 +3,11 @@ from flask import Blueprint, request, jsonify
 import io
 import os
 import pandas as pd
-import os
 
 from ml.features.predict_day import predict_day
 from ml.features.routine_engine import get_task_recommendation
 from ml.features.activity_suggestion import get_activity_suggestions
 from backend.config import DATA_DIR
-
 
 predict_bp = Blueprint("predict", __name__)
 
@@ -18,10 +16,6 @@ def _clean_date(date):
     if not date or date in {"undefined", "null"}:
         return None
     return str(date).strip()
-
-# -----------------------------------
-# 📊 EXISTING PREDICT ROUTE
-# -----------------------------------
 
 # -----------------------------------
 # 📊 EXISTING PREDICT ROUTE
@@ -41,21 +35,26 @@ def predict():
 
     row = df.tail(1).iloc[0]
 
-    mood, prod = predict_day(row)
+    with redirect_stdout(io.StringIO()):
+        result = predict_day(row)
+
+    print("Requested date:", date)
+    print("Available dates:", df["date"].unique())
 
     return {
-        "stress": round(row["stress_index"], 3),
-        "productivity": round(prod, 2),
-        "sleep": round(row["sleep_hours"], 2),
-        "mood": round(mood, 2)
-      
-      "suggestions": result["suggestions"],       
-      "day_type": result["day_type"],
-      "primary_action": result["primary_action"],
-      "root_cause": result["root_cause"],
-      "history_insights": result["history_insights"],
-      "daily_goal": result["daily_goal"]
-    }
+    "stress": result["stress"],
+    "steps": int(row["total_steps"]),
+    "productivity": round(result["productivity"], 2),
+    "sleep": result["sleep"],
+    "mood": round(result["mood"], 2),
+
+    "suggestions": result["suggestions"],       
+    "day_type": result["day_type"],
+    "primary_action": result["primary_action"],
+    "root_cause": result["root_cause"],
+    "history_insights": result["history_insights"],
+    "daily_goal": result["daily_goal"]
+}
 
 
 # -----------------------------------
@@ -84,9 +83,11 @@ def focus():
     row = df.tail(1).iloc[0]
 
     # 🔥 STEP 1: Prediction
-    mood, prod = predict_day(row)
+    prediction = predict_day(row)
 
-    # 🔥 STEP 2: Focus Engine
+    mood = prediction["mood"]
+    prod = prediction["productivity"]
+
     result = get_task_recommendation(
         row=row,
         mood=mood,

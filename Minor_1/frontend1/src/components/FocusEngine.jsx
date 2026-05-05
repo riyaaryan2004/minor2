@@ -74,7 +74,7 @@ const FocusEngine = () => {
 
           <div className={styles.taskForm}>
             <input
-              placeholder="Enter task "
+              placeholder="Enter task"
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
             />
@@ -145,6 +145,7 @@ const FocusEngine = () => {
             </p>
           ) : (
             <>
+              {/* MAIN TASK */}
               <div className={`${styles.activityCard} ${styles.resultHighlight}`}>
                 <span>⚡</span>
                 <p>
@@ -154,16 +155,31 @@ const FocusEngine = () => {
                 </p>
               </div>
 
-              {/* <div className={styles.activityCard}>
-                <span>🕒</span>
-                <p>{result.time_context}</p>
-              </div> */}
-
+              {/* SUCCESS PROBABILITY */}
               <div className={styles.activityCard}>
                 <span>📊</span>
-                <p>Confidence: {result.confidence}%</p>
+                <p>
+                  <strong>Success Probability:</strong>{" "}
+                  {result.success_probability ?? result.confidence}%
+                </p>
               </div>
 
+              {/* BURNOUT RISK */}
+              <div className={styles.activityCard}>
+                <span>🔥</span>
+                <p>
+                  <strong>Burnout Risk:</strong>{" "}
+                  {result.burnout_risk || "N/A"}
+                </p>
+              </div>
+
+              {/* CONFIDENCE */}
+              <div className={styles.activityCard}>
+                <span>📈</span>
+                <p>
+                  <strong>Confidence:</strong> {result.confidence}%
+                </p>
+              </div>
             </>
           )}
         </div>

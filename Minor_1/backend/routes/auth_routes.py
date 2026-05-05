@@ -51,4 +51,4 @@ def callback():
 
     save_token(token)
 
-    return redirect("/")   # ✅ FIXED
+    return redirect("/")   

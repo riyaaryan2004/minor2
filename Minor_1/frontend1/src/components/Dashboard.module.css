@@ -241,26 +241,24 @@
 
 .metricGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
 }
 
 .metricCard {
   position: relative;
-  min-height: 112px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 124px;
+  min-width: 0;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .metricCard::after {
-  content: "";
-  position: absolute;
-  right: -28px;
-  bottom: -34px;
-  width: 96px;
-  height: 96px;
-  border-radius: 999px;
-  background: rgba(103, 232, 249, 0.08);
-  transition: transform 0.25s ease;
+  content: none;
 }
 
 .metricCard:hover::after {
@@ -269,10 +267,10 @@
 
 .metricMarker {
   display: block;
-  width: 34px;
+  width: 36px;
   height: 4px;
   border-radius: 999px;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   background: #38bdf8;
 }
 
@@ -296,15 +294,17 @@
   margin: 0;
   color: #94a3b8;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .value {
   margin-top: 10px;
   color: #f8fafc;
-  font-size: 30px;
+  font-size: clamp(30px, 2.55vw, 38px);
   line-height: 1;
   font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .chartGrid {
@@ -414,6 +414,13 @@
 
   .metricGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (max-width: 1120px) and (min-width: 881px) {
+  .metricGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

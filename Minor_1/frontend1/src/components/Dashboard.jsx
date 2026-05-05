@@ -119,6 +119,7 @@ function Dashboard() {
   const metrics = [
     { label: "Stress", value: formatValue(data.stress), tone: "amber" },
     { label: "Sleep", value: formatValue(data.sleep, " hrs"), tone: "blue" },
+    { label: "Steps", value: formatValue(data.steps), tone: "blue" },
     { label: "Productivity", value: formatValue(data.productivity), tone: "green" },
     { label: "Mood", value: formatValue(data.mood), tone: "pink" },
   ];
@@ -132,14 +133,6 @@ function Dashboard() {
           <p className={styles.subtitle}>
             Fitbit activity, sleep, stress, and heart-rate insights in one live view.
           </p>
-        </div>
-
-        <div className={styles.heroVisual} aria-hidden="true">
-          <div className={styles.heartPulse} />
-          <div className={styles.ecgLine}>
-            <span />
-          </div>
-          <p>Live body signals</p>
         </div>
 
         {dateActions}

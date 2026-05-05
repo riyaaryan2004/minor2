@@ -1,3 +1,4 @@
+import { useState } from "react";
 import styles from "./About.module.css";
 
 const metrics = [
@@ -22,7 +23,35 @@ const workflow = [
   "Smart dashboard",
 ];
 
+const modelSteps = [
+  {
+    title: "Active Model",
+    detail: "The live prediction pipeline uses Random Forest regressors for mood and productivity.",
+  },
+  {
+    title: "Input Signals",
+    detail: "Sleep, steps, heart rate, stress index, activity load, and sleep deficit are used as prediction signals.",
+  },
+  {
+    title: "Training Flow",
+    detail: "The dataset is sorted by date, split 80/20 by time, scaled, and real Fitbit rows are weighted higher.",
+  },
+  {
+    title: "Final Output",
+    detail: "The model predicts mood and productivity on a 1-10 scale, then rule checks adjust extreme days.",
+  },
+];
+
+const modelMetrics = [
+  { label: "Mood R2", value: "0.84", detail: "Higher is better" },
+  { label: "Mood MAE", value: "0.50", detail: "Average score error" },
+  { label: "Productivity R2", value: "0.73", detail: "Higher is better" },
+  { label: "Productivity MAE", value: "0.37", detail: "Average score error" },
+];
+
 function About() {
+  const [showModelDetails, setShowModelDetails] = useState(false);
+
   return (
     <div className={styles.wrapper}>
       <section className={styles.hero}>
@@ -104,6 +133,61 @@ function About() {
             </article>
           ))}
         </div>
+      </section>
+
+      <section className={styles.modelSection}>
+        <div className={styles.modelIntro}>
+          <p className={styles.kicker}>Model & scoring logic</p>
+          <h2>How FitIntel turns raw signals into predictions.</h2>
+          <p>
+            The prediction layer combines engineered health features with a trained
+            Random Forest model, then applies small rule-based adjustments for extreme
+            sleep, stress, and activity patterns.
+          </p>
+          <button
+            type="button"
+            className={styles.detailsButton}
+            onClick={() => setShowModelDetails((current) => !current)}
+            aria-expanded={showModelDetails}
+          >
+            {showModelDetails ? "Hide technical details" : "View technical details"}
+          </button>
+        </div>
+
+        {showModelDetails && (
+          <div className={styles.detailsPanel}>
+            <div className={styles.modelGrid}>
+              {modelSteps.map((item, index) => (
+                <article key={item.title} className={styles.modelCard}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.detail}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className={styles.performancePanel}>
+              <div>
+                <p className={styles.kicker}>Model performance</p>
+                <h3>Random Forest test results</h3>
+                <p>
+                  These scores come from the saved experiment results and show how close
+                  the model was on the held-out test portion of the dataset.
+                </p>
+              </div>
+
+              <div className={styles.metricGridCompact}>
+                {modelMetrics.map((metric) => (
+                  <div key={metric.label} className={styles.metricItem}>
+                    <span>{metric.label}</span>
+                    <strong>{metric.value}</strong>
+                    <small>{metric.detail}</small>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       <section className={styles.process}>

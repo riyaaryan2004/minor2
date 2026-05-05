@@ -9,7 +9,6 @@ from ml.features.routine_engine import get_task_recommendation
 from ml.features.activity_suggestion import get_activity_suggestions
 from backend.config import DATA_DIR
 
-
 predict_bp = Blueprint("predict", __name__)
 
 
@@ -44,6 +43,7 @@ def predict():
 
     return {
     "stress": result["stress"],
+    "steps": int(row["total_steps"]),
     "productivity": round(result["productivity"], 2),
     "sleep": result["sleep"],
     "mood": round(result["mood"], 2),

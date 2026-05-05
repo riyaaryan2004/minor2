@@ -67,24 +67,47 @@ def get_root_cause(row, stress):
 
 # -------- NEW: PRIMARY ACTION --------
 def get_primary_action(row, stress):
+    sleep = round(row["sleep_hours"], 1)
+    steps = int(row["total_steps"])
+
     if stress > 0.18:
-        return "Focus on relaxation and avoid high-pressure tasks."
+        return (
+            f"Stress is elevated ({round(stress, 3)}), so keep today focused on lower-pressure work. "
+            "Handle one important task at a time, take a 5-10 minute reset break, and avoid stacking intense tasks back to back."
+        )
     if row["sleep_hours"] < 5:
-        return "Take a lighter workload and prioritize recovery."
+        return (
+            f"Sleep is low ({sleep} hrs), so use today as a recovery-focused day. "
+            "Prioritize essential work first, keep non-urgent tasks lighter, and aim for an earlier wind-down tonight."
+        )
     if row["total_steps"] < 3000:
-        return "Increase physical activity with a short walk."
-    return "Maintain your current routine."
+        return (
+            f"Activity is low so far ({steps} steps). Add a realistic movement target with a short 10-15 minute walk "
+            "or two small walking breaks to improve energy without overdoing it."
+        )
+    return (
+        f"Your core signals look stable today: {sleep} hrs sleep, {steps} steps, and stress at {round(stress, 3)}. "
+        "Maintain the routine, protect breaks, and avoid pushing intensity unnecessarily."
+    )
 
 
 # -------- NEW: DAILY GOAL --------
 def get_daily_goal(df, row):
     avg_steps = df['total_steps'].mean()
     target = int(avg_steps + 500)
+    current_steps = int(row['total_steps'])
 
     if row['total_steps'] >= avg_steps:
-        return f"Maintain activity above {int(avg_steps)} steps"
+        return (
+            f"Maintain at least {int(avg_steps)} steps today. You are currently at {current_steps}, "
+            "so focus on consistency: one light walk later is enough to stay near your weekly rhythm."
+        )
     else:
-        return f"Reach at least {target} steps today"
+        remaining = max(0, target - current_steps)
+        return (
+            f"Reach about {target} steps today. You are currently at {current_steps}, "
+            f"so add roughly {remaining} more steps through 2-3 short walks instead of one long push."
+        )
     
     
 # -------- COMMON FEATURE ENGINEERING --------

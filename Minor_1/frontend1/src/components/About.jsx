@@ -74,23 +74,13 @@ function About() {
         </div>
 
         <div className={styles.signalPanel} aria-label="FitIntel health signal preview">
-          <div className={styles.panelHeader}>
-            <span>Live Readiness</span>
-            <strong>86%</strong>
-          </div>
-          <div className={styles.waveGrid}>
-            <span style={{ height: "42%" }} />
-            <span style={{ height: "70%" }} />
-            <span style={{ height: "55%" }} />
-            <span style={{ height: "88%" }} />
-            <span style={{ height: "64%" }} />
-            <span style={{ height: "76%" }} />
-            <span style={{ height: "48%" }} />
-            <span style={{ height: "82%" }} />
-          </div>
-          <div className={styles.panelFooter}>
-            <span>Mood stable</span>
-            <span>Focus rising</span>
+          <div className={styles.orbitVisual} aria-hidden="true">
+            <span className={styles.orbitRing} />
+            <span className={styles.orbitRing} />
+            <span className={styles.orbitCore} />
+            <span className={styles.signalDot} />
+            <span className={styles.signalDot} />
+            <span className={styles.signalDot} />
           </div>
         </div>
       </section>

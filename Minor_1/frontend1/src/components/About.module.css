@@ -9,7 +9,7 @@
   position: relative;
   overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 250px;
   gap: 28px;
   align-items: stretch;
   min-height: 360px;
@@ -20,29 +20,6 @@
     linear-gradient(115deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.72)),
     linear-gradient(135deg, rgba(20, 184, 166, 0.22), rgba(244, 114, 182, 0.12));
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
-}
-
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
-  background-size: 38px 38px;
-  mask-image: linear-gradient(110deg, rgba(0, 0, 0, 0.75), transparent 72%);
-}
-
-.hero::after {
-  content: "";
-  position: absolute;
-  right: 24px;
-  top: 24px;
-  width: 160px;
-  height: 160px;
-  border: 1px solid rgba(103, 232, 249, 0.18);
-  border-radius: 999px;
-  background: rgba(103, 232, 249, 0.08);
 }
 
 .heroContent,
@@ -118,51 +95,87 @@
 .signalPanel {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  min-height: 300px;
-  padding: 18px;
-  border: 1px solid rgba(103, 232, 249, 0.24);
-  border-radius: 8px;
-  background: rgba(2, 6, 23, 0.58);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(18px);
+  justify-content: center;
+  min-height: 220px;
+  padding: 0;
+  transform: translateX(-24px);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
-.panelHeader,
-.panelFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.panelHeader span,
-.panelFooter span {
-  color: #94a3b8;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.panelHeader strong {
-  color: #fef3c7;
-  font-size: 30px;
-}
-
-.waveGrid {
+.orbitVisual {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  align-items: end;
-  gap: 8px;
-  height: 160px;
-  padding: 16px 4px;
+  place-items: center;
+  height: 220px;
+  margin-top: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at center, rgba(103, 232, 249, 0.16), transparent 38%);
+  background-size: auto;
+  overflow: hidden;
 }
 
-.waveGrid span {
-  display: block;
-  min-height: 28px;
-  border-radius: 999px 999px 8px 8px;
-  background: linear-gradient(180deg, #67e8f9, #14b8a6 62%, rgba(20, 184, 166, 0.18));
-  box-shadow: 0 0 28px rgba(103, 232, 249, 0.22);
+.orbitRing {
+  position: absolute;
+  width: 138px;
+  height: 138px;
+  border: 1px solid rgba(103, 232, 249, 0.38);
+  border-radius: 999px;
+  animation: orbitPulse 3.8s ease-in-out infinite;
+}
+
+.orbitRing:nth-child(2) {
+  width: 182px;
+  height: 94px;
+  border-color: rgba(244, 114, 182, 0.34);
+  transform: rotate(-18deg);
+  animation-delay: -1.4s;
+}
+
+.orbitCore {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 30%, #f8fafc, #67e8f9 28%, #14b8a6 68%, rgba(20, 184, 166, 0.3));
+  box-shadow:
+    0 0 24px rgba(103, 232, 249, 0.44),
+    0 0 56px rgba(20, 184, 166, 0.24);
+  animation: coreBreathe 2.8s ease-in-out infinite;
+}
+
+.signalDot {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #fef3c7;
+  box-shadow: 0 0 20px rgba(254, 243, 199, 0.58);
+  animation: signalFloat 4.2s ease-in-out infinite;
+}
+
+.signalDot:nth-child(4) {
+  top: 42px;
+  right: 68px;
+}
+
+.signalDot:nth-child(5) {
+  bottom: 54px;
+  left: 58px;
+  background: #f9a8d4;
+  animation-delay: -1.2s;
+}
+
+.signalDot:nth-child(6) {
+  right: 38px;
+  bottom: 72px;
+  background: #67e8f9;
+  animation-delay: -2.1s;
 }
 
 .storyGrid {
@@ -479,6 +492,40 @@
   }
 }
 
+@keyframes orbitPulse {
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: scale(0.94) rotate(0deg);
+  }
+  50% {
+    opacity: 0.92;
+    transform: scale(1.04) rotate(14deg);
+  }
+}
+
+@keyframes coreBreathe {
+  0%,
+  100% {
+    transform: scale(0.95);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes signalFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.58;
+  }
+  50% {
+    transform: translate3d(10px, -12px, 0);
+    opacity: 1;
+  }
+}
+
 @media (max-width: 980px) {
   .hero,
   .process,
@@ -487,7 +534,7 @@
   }
 
   .signalPanel {
-    min-height: 240px;
+    min-height: 220px;
   }
 
   .signalGrid,

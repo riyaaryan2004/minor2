@@ -3,6 +3,21 @@ import { getPredictions } from "../api/api";
 import Card from "./Card";
 import styles from "./Activity.module.css";
 
+const getWeeklySummaryCards = (insights) => {
+  const weeklySummary = insights.find((item) => item.startsWith("Weekly Summary:"));
+
+  if (!weeklySummary) {
+    return [];
+  }
+
+  return weeklySummary
+    .split("\n")
+    .slice(1)
+    .map((line) => line.replace(/^- /, "").split(": "))
+    .filter(([label, value]) => label && value)
+    .map(([label, value]) => ({ label, value }));
+};
+
 function Activity() {
   const [data, setData] = useState(null);
 
@@ -25,7 +40,10 @@ function Activity() {
 
   const suggestions = data.suggestions || [];
   const historyInsights = data.history_insights || [];
-  const visibleHistory = historyInsights.slice(0, 3);
+  const weeklySummaryCards = getWeeklySummaryCards(historyInsights);
+  const visibleHistory = historyInsights
+    .filter((item) => !item.startsWith("Weekly Summary:"))
+    .slice(0, 3);
 
   return (
     <div className={styles.wrapper}>
@@ -63,7 +81,7 @@ function Activity() {
               </div>
               <span>Now</span>
             </div>
-            <p className={styles.text}>{data.primary_action}</p>
+            <p className={styles.actionText}>{data.primary_action}</p>
           </div>
         </Card>
 
@@ -76,7 +94,7 @@ function Activity() {
               </div>
               <span>Goal</span>
             </div>
-            <p>{data.daily_goal}</p>
+            <p className={styles.goalText}>{data.daily_goal}</p>
           </div>
         </Card>
       </section>
@@ -94,7 +112,7 @@ function Activity() {
             {suggestions.length > 0 ? suggestions.map((s, i) => (
               <div key={i} className={styles.cardItem}>
                 <span>{String(i + 1).padStart(2, "0")}</span>
-                {s}
+                <p>{s}</p>
               </div>
             )) : (
               <p className={styles.empty}>No supporting actions available.</p>
@@ -102,6 +120,30 @@ function Activity() {
           </div>
         </div>
       </Card>
+
+      {weeklySummaryCards.length > 0 && (
+        <Card>
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <p className={styles.kicker}>7-day pattern</p>
+                <div className={styles.title}>Weekly Summary</div>
+              </div>
+              <span>{weeklySummaryCards.length} metrics</span>
+            </div>
+            <div className={styles.analysisGrid}>
+              {weeklySummaryCards.map((item) => (
+                <div key={item.label} className={styles.analysisCard}>
+                  <span className={styles.analysisMarker} />
+                  <p>{item.label}</p>
+                  <strong>{item.value}</strong>
+                  <small>Weekly average</small>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Card>
         <div className={styles.section}>

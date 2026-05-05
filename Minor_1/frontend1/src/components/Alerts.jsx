@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   acknowledgeHeartAlert,
   checkHeartAlert,
@@ -11,6 +11,76 @@ import styles from "./Alerts.module.css";
 import Card from "./Card";
 
 const HEART_RATE_REFRESH_MS = 30000;
+const ALERT_STATUS_REFRESH_MS = 5000;
+
+const formatCountdown = (seconds) => {
+  const safeSeconds = Math.max(0, seconds);
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+
+  return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+};
+
+const getAlertSecondsLeft = (alert, nowMs) => {
+  if (!alert?.createdAt) {
+    return 60;
+  }
+
+  const createdAtMs = new Date(alert.createdAt).getTime();
+  if (Number.isNaN(createdAtMs)) {
+    return 60;
+  }
+
+  const escalationSeconds = Math.max(Number(alert.escalationMinutes || 1), 1) * 60;
+  const elapsedSeconds = Math.floor((nowMs - createdAtMs) / 1000);
+
+  return Math.max(escalationSeconds - elapsedSeconds, 0);
+};
+
+const getEscalationMessage = (alert) => {
+  if (alert?.emergencyEmailResult?.sent) {
+    return "No acknowledgement was received within 1 minute. Emergency email has been sent.";
+  }
+
+  const reason = alert?.emergencyEmailResult?.reason;
+  if (reason) {
+    return `No acknowledgement was received within 1 minute. Emergency email was attempted but not sent: ${reason}`;
+  }
+
+  return "No acknowledgement was received within 1 minute. Emergency email is being processed.";
+};
+
+const getSourceLabel = (source) => {
+  if (source === "fitbit-live") {
+    return "Live";
+  }
+
+  if (source === "saved-hourly") {
+    return "Saved";
+  }
+
+  return "--";
+};
+
+const getLiveSourceMessage = (liveError) => {
+  if (liveError === "expired_token") {
+    return "Fitbit login expired. Using saved HR data.";
+  }
+
+  if (liveError === "no_live_points") {
+    return "No live Fitbit points found yet. Using saved HR data.";
+  }
+
+  if (liveError === "fitbit_connection_error") {
+    return "Could not reach Fitbit. Using saved HR data.";
+  }
+
+  if (liveError) {
+    return "Fitbit live HR is unavailable. Using saved HR data.";
+  }
+
+  return "";
+};
 
 const formatReadingTime = (time) => {
   if (!time) {
@@ -42,6 +112,9 @@ function Alerts() {
   const [pendingAlert, setPendingAlert] = useState(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState("safeMessage");
+  const [lastCheckedReading, setLastCheckedReading] = useState("");
+  const [nowMs, setNowMs] = useState(Date.now());
 
   useEffect(() => {
     let intervalId;
@@ -56,6 +129,7 @@ function Alerts() {
           readingDate: latest.date,
           source: latest.source,
           checkedAt: latest.checkedAt,
+          liveError: latest.liveError,
         }));
       }
     };
@@ -78,6 +152,7 @@ function Alerts() {
         readingDate: latest?.date ?? current.readingDate,
         source: latest?.source ?? current.source,
         checkedAt: latest?.checkedAt ?? current.checkedAt,
+        liveError: latest?.liveError ?? current.liveError,
       }));
       setLoading(false);
 
@@ -98,37 +173,85 @@ function Alerts() {
       const status = await getHeartAlertStatus(pendingAlert.id);
       if (status) {
         setPendingAlert(status);
+        if (status.status === "escalated") {
+          setMessageTone("dangerMessage");
+          setMessage(getEscalationMessage(status));
+        }
+      } else {
+        setPendingAlert(null);
+        setMessageTone("dangerMessage");
+        setMessage("This alert is no longer active on the backend. The backend may have restarted; checking the latest heart rate again.");
       }
-    }, 15000);
+    }, ALERT_STATUS_REFRESH_MS);
 
     return () => clearInterval(intervalId);
   }, [pendingAlert?.id, pendingAlert?.status]);
 
-  const handleCheck = async () => {
-    if (!heartState.heartRate) {
-      setMessage("No live heart-rate reading found.");
-      return;
+  useEffect(() => {
+    if (pendingAlert?.status !== "pending") {
+      return undefined;
     }
 
+    setNowMs(Date.now());
+    const intervalId = setInterval(() => setNowMs(Date.now()), 1000);
+
+    return () => clearInterval(intervalId);
+  }, [pendingAlert?.status]);
+
+  const runHeartAlertCheck = useCallback(async (heartRate, silent = false) => {
     setSaving(true);
-    setMessage("");
+    if (!silent) {
+      setMessage("");
+    }
 
     const result = await checkHeartAlert({
-      heartRate: Number(heartState.heartRate),
+      heartRate: Number(heartRate),
     });
 
     if (result.error) {
+      setMessageTone("dangerMessage");
       setMessage(result.message || "Alert check failed");
     } else if (result.status === "normal") {
       setPendingAlert(null);
-      setMessage(result.message);
+      setMessageTone("safeMessage");
+      setMessage(`Current heart rate is normal. ${result.message}`);
     } else {
       setPendingAlert(result);
-      setMessage("Self email step started. Acknowledge within the window to stop emergency email.");
+      setMessageTone("dangerMessage");
+      setMessage("Abnormal heart rate detected. Tap I'm okay within 1 minute to stop the emergency email.");
     }
 
     setSaving(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!heartState.heartRate || pendingAlert?.status === "pending" || saving) {
+      return;
+    }
+
+    const readingKey = [
+      heartState.readingDate || "",
+      heartState.readingTime || "",
+      heartState.heartRate,
+      heartState.source || "",
+    ].join("|");
+
+    if (readingKey === lastCheckedReading) {
+      return;
+    }
+
+    setLastCheckedReading(readingKey);
+    runHeartAlertCheck(heartState.heartRate, true);
+  }, [
+    heartState.heartRate,
+    heartState.readingDate,
+    heartState.readingTime,
+    heartState.source,
+    lastCheckedReading,
+    pendingAlert?.status,
+    runHeartAlertCheck,
+    saving,
+  ]);
 
   const handleAcknowledge = async () => {
     if (!pendingAlert?.id) {
@@ -138,9 +261,11 @@ function Alerts() {
     setSaving(true);
     const result = await acknowledgeHeartAlert(pendingAlert.id);
     if (result.error) {
+      setMessageTone("dangerMessage");
       setMessage(result.message || "Could not acknowledge alert");
     } else {
       setPendingAlert(result);
+      setMessageTone("safeMessage");
       setMessage("Alert acknowledged. Emergency email has been stopped.");
     }
     setSaving(false);
@@ -150,23 +275,25 @@ function Alerts() {
     if (!result) {
       return null;
     }
-    return result.sent ? "Email sent" : result.reason;
+    return result.sent ? "Email sent" : `Not sent: ${result.reason}`;
   };
+
+  const secondsLeft = getAlertSecondsLeft(pendingAlert, nowMs);
 
   return (
     <div className={styles.wrapper}>
       <section className={styles.header}>
         <p className={styles.kicker}>Heart-rate safety</p>
         <h1>Heart Rate Alerts</h1>
-        <p>Checks the latest heart-rate reading and uses saved contacts for self and emergency emails.</p>
+        <p>Checks the latest heart-rate reading and alerts the emergency contact if there is no response.</p>
       </section>
 
       <Card>
         <div className={styles.alertPanel}>
           <div className={styles.formHeader}>
             <div>
-              <p className={styles.kicker}>Saved email escalation</p>
-              <h2>Heart-rate check</h2>
+              <p className={styles.kicker}>Emergency escalation</p>
+              <h2>Automatic heart-rate check</h2>
             </div>
             {pendingAlert?.status && (
               <span className={`${styles.statusBadge} ${styles[pendingAlert.status] || ""}`}>
@@ -193,7 +320,7 @@ function Alerts() {
             </div>
             <div>
               <span>Source</span>
-              <strong>{heartState.source === "fitbit-live" ? "Live" : "Saved"}</strong>
+              <strong>{getSourceLabel(heartState.source)}</strong>
             </div>
             <div>
               <span>Safe range</span>
@@ -201,29 +328,45 @@ function Alerts() {
             </div>
             <div>
               <span>Emergency delay</span>
-              <strong>{heartState.escalationMinutes} min</strong>
+              <strong>1 min</strong>
             </div>
           </div>
+          {heartState.source === "saved-hourly" && heartState.liveError && (
+            <div className={styles.sourceWarning}>
+              <span>{getLiveSourceMessage(heartState.liveError)}</span>
+              {heartState.liveError === "expired_token" && (
+                <a href="http://127.0.0.1:5000/login">Reconnect Fitbit</a>
+              )}
+            </div>
+          )}
 
           <div className={styles.actions}>
-            <button type="button" onClick={handleCheck} disabled={saving || !heartState.heartRate}>
-              {saving ? "Checking..." : "Check heart rate"}
-            </button>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={handleAcknowledge}
-              disabled={saving || !pendingAlert?.id || pendingAlert.status !== "pending"}
-            >
-              I'm okay
-            </button>
+            {pendingAlert?.status === "pending" && (
+              <>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={handleAcknowledge}
+                  disabled={saving}
+                >
+                  I'm okay
+                </button>
+                <span className={styles.timerBadge}>
+                  {formatCountdown(secondsLeft)}
+                </span>
+              </>
+            )}
+            {saving && <span className={styles.checkingText}>Checking latest reading...</span>}
           </div>
 
-          {message && <p className={styles.message}>{message}</p>}
+          {message && (
+            <p className={`${styles.message} ${styles[messageTone] || styles.safeMessage}`}>
+              {message}
+            </p>
+          )}
           {pendingAlert && (
             <div className={styles.summary}>
               <p><strong>{pendingAlert.heartRate} BPM</strong> is {pendingAlert.kind} for the {pendingAlert.lowBpm}-{pendingAlert.highBpm} BPM range.</p>
-              <p>Self mail: {emailNote(pendingAlert.selfEmailResult)}</p>
               {pendingAlert.emergencyEmailResult && <p>Emergency mail: {emailNote(pendingAlert.emergencyEmailResult)}</p>}
             </div>
           )}
@@ -241,7 +384,7 @@ function Alerts() {
               return (
                 <div
                   key={index}
-                  className={`${styles.alert} ${isNormal ? styles.normal : styles.danger}`}
+                  className={`${styles.alert} ${isNormal ? styles.normal : styles.dangerAlert}`}
                 >
                   <span className={styles.icon}>{isNormal ? "OK" : "!"}</span>
                   <div>

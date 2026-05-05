@@ -49,6 +49,62 @@ export const getAlerts = async () => {
   }
 };
 
+export const getHeartAlertConfig = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/heart-alert/config`);
+    return await res.json();
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+};
+
+export const checkHeartAlert = async (payload) => {
+  try {
+    const res = await fetch(`${BASE_URL}/heart-alert/check`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    return res.ok ? data : { error: true, message: data?.error || "Alert check failed" };
+  } catch (err) {
+    console.error(err);
+    return { error: true, message: "Alert check failed" };
+  }
+};
+
+export const acknowledgeHeartAlert = async (alertId) => {
+  try {
+    const res = await fetch(`${BASE_URL}/heart-alert/acknowledge`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ alertId }),
+    });
+    const data = await res.json();
+
+    return res.ok ? data : { error: true, message: data?.error || "Could not acknowledge alert" };
+  } catch (err) {
+    console.error(err);
+    return { error: true, message: "Could not acknowledge alert" };
+  }
+};
+
+export const getHeartAlertStatus = async (alertId) => {
+  try {
+    const res = await fetch(`${BASE_URL}/heart-alert/status/${encodeURIComponent(alertId)}`);
+    return res.ok ? await res.json() : null;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+};
+
 // Get heart rate data (hourly graph)
 export const getHRData = async () => {
   try {
@@ -63,4 +119,14 @@ export const getHRData = async () => {
 export const getHRMinute = async () => {
   const res = await fetch("http://127.0.0.1:5000/hr-minute");
   return await res.json();
+};
+
+export const getLatestHeartRate = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/hr-latest?t=${Date.now()}`);
+    return res.ok ? await res.json() : null;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
 };

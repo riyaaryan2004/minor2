@@ -2,6 +2,40 @@
   padding: 40px;
 }
 
+.panel {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 8px;
+  background: #111827;
+  color: #e5e7eb;
+}
+
+.panel p {
+  margin: 8px 0;
+}
+
+.panel button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  background: #06b6d4;
+  color: #082f49;
+  padding: 0 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.message {
+  color: #fecaca;
+  font-weight: 700;
+}
+
 .card {
   background: #7f1d1d;
   padding: 12px;

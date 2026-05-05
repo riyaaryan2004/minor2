@@ -1,5 +1,6 @@
 from datetime import datetime
 from email.message import EmailMessage
+import requests
 import smtplib
 from threading import Lock, Timer
 from uuid import uuid4
@@ -24,9 +25,71 @@ def _smtp_ready():
     )
 
 
+def _sendgrid_ready():
+    return all(
+        [
+            alert_settings.SENDGRID_API_URL,
+            alert_settings.SENDGRID_API_KEY,
+            alert_settings.SMTP_FROM_EMAIL,
+        ]
+    )
+
+
+def _email_ready():
+    if alert_settings.EMAIL_PROVIDER == "sendgrid":
+        return _sendgrid_ready()
+
+    return _smtp_ready()
+
+
+def _send_sendgrid_email(to_email, subject, body):
+    if not _sendgrid_ready():
+        return {
+            "sent": False,
+            "reason": "SendGrid is not configured. Set HEART_ALERT_SENDGRID_API_KEY and HEART_ALERT_FROM_EMAIL.",
+        }
+
+    payload = {
+        "personalizations": [{"to": [{"email": to_email}]}],
+        "from": {
+            "email": alert_settings.SMTP_FROM_EMAIL,
+            "name": alert_settings.EMAIL_FROM_NAME,
+        },
+        "subject": subject,
+        "content": [{"type": "text/plain", "value": body}],
+    }
+
+    try:
+        response = requests.post(
+            alert_settings.SENDGRID_API_URL,
+            headers={
+                "Authorization": f"Bearer {alert_settings.SENDGRID_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+            timeout=15,
+        )
+    except requests.RequestException as exc:
+        return {
+            "sent": False,
+            "reason": f"SendGrid API request failed: {exc}",
+        }
+
+    if response.status_code not in {200, 202}:
+        return {
+            "sent": False,
+            "reason": f"SendGrid API failed with status {response.status_code}",
+        }
+
+    return {"sent": True, "provider": "sendgrid"}
+
+
 def send_email(to_email, subject, body):
     if not to_email:
         return {"sent": False, "reason": "Recipient email is missing"}
+
+    if alert_settings.EMAIL_PROVIDER == "sendgrid":
+        return _send_sendgrid_email(to_email, subject, body)
 
     if not _smtp_ready():
         return {
@@ -45,7 +108,7 @@ def send_email(to_email, subject, body):
         smtp.login(alert_settings.SMTP_USERNAME, alert_settings.SMTP_PASSWORD)
         smtp.send_message(message)
 
-    return {"sent": True}
+    return {"sent": True, "provider": "smtp"}
 
 
 def get_default_config():
@@ -55,6 +118,8 @@ def get_default_config():
         "escalationMinutes": alert_settings.HEART_ALERT_ESCALATION_MINUTES,
         "selfEmail": alert_settings.DEFAULT_SELF_EMAIL,
         "emergencyEmail": alert_settings.DEFAULT_EMERGENCY_EMAIL,
+        "emailProvider": alert_settings.EMAIL_PROVIDER,
+        "emailConfigured": _email_ready(),
         "smtpConfigured": _smtp_ready(),
     }
 
@@ -67,16 +132,36 @@ def classify_heart_rate(heart_rate, low_bpm, high_bpm):
     return "normal"
 
 
-def _alert_body(alert, recipient_type):
+def _format_alert_time(timestamp):
+    try:
+        return datetime.fromisoformat(timestamp).strftime("%d %b %Y, %I:%M %p")
+    except ValueError:
+        return timestamp
+
+
+def _alert_subject(alert):
+    return f"Urgent: {alert['patientName']} may need help ({alert['heartRate']} BPM)"
+
+
+def _alert_body(alert):
     direction = "below" if alert["kind"] == "low" else "above"
+    detected_at = _format_alert_time(alert["createdAt"])
+    escalated_at = _format_alert_time(alert.get("escalatedAt", ""))
+    delay = alert["escalationMinutes"]
+
     return (
-        f"Heart-rate alert for {alert['patientName']}.\n\n"
-        f"Current heart rate: {alert['heartRate']} BPM\n"
-        f"Safe range: {alert['lowBpm']}-{alert['highBpm']} BPM\n"
-        f"Status: {alert['kind'].upper()} heart rate, {direction} safe range\n"
-        f"Detected at: {alert['createdAt']}\n\n"
-        f"Recipient: {recipient_type}\n"
-        "Please check on the user if this alert looks serious."
+        f"FitIntel heart-rate safety alert\n\n"
+        f"{alert['patientName']} had an abnormal heart-rate reading and did not confirm they were okay "
+        f"within {delay} minute(s).\n\n"
+        f"Current reading: {alert['heartRate']} BPM\n"
+        f"Expected range: {alert['lowBpm']}-{alert['highBpm']} BPM\n"
+        f"Alert type: {alert['kind'].upper()} heart rate ({direction} expected range)\n"
+        f"Detected at: {detected_at}\n"
+        f"Escalated at: {escalated_at}\n\n"
+        "Suggested action:\n"
+        "1. Try calling or messaging them now.\n"
+        "2. If they do not respond and you believe there is immediate danger, contact local emergency services.\n\n"
+        "This alert is generated automatically from heart-rate data and is not a medical diagnosis."
     )
 
 
@@ -90,8 +175,8 @@ def _escalate(alert_id):
 
     result = send_email(
         alert["emergencyEmail"],
-        f"Emergency heart-rate alert: {alert['heartRate']} BPM",
-        _alert_body(alert, "Emergency contact"),
+        _alert_subject(alert),
+        _alert_body(alert),
     )
 
     with _lock:
@@ -104,9 +189,8 @@ def create_heart_alert(payload):
     low_bpm = alert_settings.HEART_ALERT_LOW_BPM
     high_bpm = alert_settings.HEART_ALERT_HIGH_BPM
     escalation_minutes = alert_settings.HEART_ALERT_ESCALATION_MINUTES
-    escalation_minutes = min(max(escalation_minutes, 3), 5)
+    escalation_minutes = max(escalation_minutes, 1)
     patient_name = PATIENT_NAME
-    self_email = alert_settings.DEFAULT_SELF_EMAIL.strip()
     emergency_email = alert_settings.DEFAULT_EMERGENCY_EMAIL.strip()
 
     kind = classify_heart_rate(heart_rate, low_bpm, high_bpm)
@@ -126,18 +210,10 @@ def create_heart_alert(payload):
         "lowBpm": low_bpm,
         "highBpm": high_bpm,
         "patientName": patient_name,
-        "selfEmail": self_email,
         "emergencyEmail": emergency_email,
         "escalationMinutes": escalation_minutes,
         "createdAt": datetime.now().isoformat(timespec="seconds"),
     }
-
-    self_result = send_email(
-        self_email,
-        f"Heart-rate check needed: {heart_rate} BPM",
-        _alert_body(alert, "User"),
-    )
-    alert["selfEmailResult"] = self_result
 
     timer = Timer(escalation_minutes * 60, _escalate, args=(alert_id,))
     timer.daemon = True

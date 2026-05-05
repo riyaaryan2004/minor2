@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from backend.config import DATA_DIR
 from backend.services.token_service import get_token
-from ml.features.hr_live import get_intraday_hr
+from ml.features.hr_live import get_intraday_hr, get_intraday_hr_response
 hr_bp = Blueprint("hr", __name__)
 
 def _clean_date(date):
@@ -63,10 +63,19 @@ def hr_latest():
     if not date:
         date = datetime.now().strftime("%Y-%m-%d")
 
+    live_error = None
+
     try:
-        data = get_intraday_hr(token, date)
+        live_response = get_intraday_hr_response(token, date)
+        data = live_response["data"]
+        if live_response["statusCode"] != 200:
+            errors = live_response.get("errors") or []
+            live_error = errors[0].get("errorType", "fitbit_api_error") if errors else "fitbit_api_error"
+        elif not data:
+            live_error = "no_live_points"
     except Exception as exc:
         data = []
+        live_error = "fitbit_connection_error"
 
     if not data:
         hourly = pd.read_csv(os.path.join(DATA_DIR, "hourly_data.csv"))
@@ -83,6 +92,7 @@ def hr_latest():
             "hr": round(float(latest_hour["avg_hr"]), 1),
             "points": len(hourly),
             "source": "saved-hourly",
+            "liveError": live_error,
             "checkedAt": checked_at,
         }
 

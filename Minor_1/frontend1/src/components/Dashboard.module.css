@@ -253,7 +253,7 @@
   justify-content: space-between;
   min-height: 124px;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
 }
 
@@ -261,39 +261,112 @@
   content: none;
 }
 
-.metricCard:hover::after {
-  transform: scale(1.16);
+.metricTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .metricMarker {
   display: block;
-  width: 36px;
+  width: 34px;
   height: 4px;
   border-radius: 999px;
-  margin-bottom: 18px;
+  margin-top: 15px;
   background: #38bdf8;
+}
+
+.metricIcon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(15, 23, 42, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.metricIcon svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .amber .metricMarker {
   background: #f59e0b;
 }
 
+.amber .metricIcon {
+  border-color: rgba(245, 158, 11, 0.28);
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+}
+
+.red .metricMarker {
+  background: #fb7185;
+}
+
+.red .metricIcon {
+  border-color: rgba(251, 113, 133, 0.3);
+  background: rgba(251, 113, 133, 0.13);
+  color: #fda4af;
+}
+
 .blue .metricMarker {
   background: #38bdf8;
+}
+
+.blue .metricIcon {
+  border-color: rgba(56, 189, 248, 0.28);
+  background: rgba(14, 165, 233, 0.12);
+  color: #7dd3fc;
+}
+
+.teal .metricMarker {
+  background: #2dd4bf;
+}
+
+.teal .metricIcon {
+  border-color: rgba(45, 212, 191, 0.3);
+  background: rgba(20, 184, 166, 0.13);
+  color: #5eead4;
 }
 
 .green .metricMarker {
   background: #22c55e;
 }
 
+.green .metricIcon {
+  border-color: rgba(34, 197, 94, 0.28);
+  background: rgba(34, 197, 94, 0.12);
+  color: #86efac;
+}
+
 .pink .metricMarker {
   background: #f472b6;
+}
+
+.pink .metricIcon {
+  border-color: rgba(244, 114, 182, 0.28);
+  background: rgba(244, 114, 182, 0.12);
+  color: #f9a8d4;
 }
 
 .label {
   margin: 0;
   color: #94a3b8;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -301,10 +374,54 @@
 .value {
   margin-top: 10px;
   color: #f8fafc;
-  font-size: clamp(30px, 2.55vw, 38px);
+  font-size: clamp(24px, 2.15vw, 32px);
   line-height: 1;
   font-weight: 800;
   overflow-wrap: anywhere;
+}
+
+.metricExplainBar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+}
+
+.metricExplanationGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(103, 232, 249, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(6, 182, 212, 0.08), rgba(34, 197, 94, 0.035)),
+    rgba(2, 6, 23, 0.42);
+  animation: fadeIn 0.24s ease both;
+}
+
+.metricExplanationGrid div {
+  min-height: 112px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.metricExplanationGrid span {
+  display: block;
+  margin-bottom: 7px;
+  color: #67e8f9;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.metricExplanationGrid p {
+  margin: 0;
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
 }
 
 .chartGrid {
@@ -326,6 +443,32 @@
   font-size: 19px;
 }
 
+.panelActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.explainButton {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(103, 232, 249, 0.24);
+  border-radius: 999px;
+  background: rgba(6, 182, 212, 0.1);
+  color: #67e8f9;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.explainButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(103, 232, 249, 0.42);
+  background: rgba(6, 182, 212, 0.16);
+}
+
 .badge {
   flex: 0 0 auto;
   padding: 6px 9px;
@@ -335,6 +478,36 @@
   background: rgba(15, 23, 42, 0.62);
   font-size: 12px;
   font-weight: 700;
+}
+
+.chartNotes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.chartNotes div {
+  min-height: 82px;
+  padding: 12px;
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(6, 182, 212, 0.08), rgba(34, 197, 94, 0.035)),
+    rgba(2, 6, 23, 0.42);
+  color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.55;
+  animation: fadeIn 0.24s ease both;
+}
+
+.chartNotes span {
+  display: block;
+  margin-bottom: 6px;
+  color: #67e8f9;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .chartLoading {
@@ -416,6 +589,19 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
   }
+
+  .metricExplanationGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chartNotes {
+    grid-template-columns: 1fr;
+  }
+
+  .panelActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 1120px) and (min-width: 881px) {
@@ -430,6 +616,14 @@
   }
 
   .metricGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricExplainBar {
+    justify-content: flex-start;
+  }
+
+  .metricExplanationGrid {
     grid-template-columns: 1fr;
   }
 

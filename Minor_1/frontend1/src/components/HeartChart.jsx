@@ -12,6 +12,12 @@ import { Line } from "react-chartjs-2";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Filler);
 
+const getHourLabel = (hour) => {
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:00 ${suffix}`;
+};
+
 function HeartChart({ data }) {
   if (!data || data.length === 0) {
     return (
@@ -39,6 +45,8 @@ function HeartChart({ data }) {
         borderColor: "#22d3ee",
         backgroundColor: "rgba(34, 211, 238, 0.12)",
         pointRadius: 2,
+        pointHoverRadius: 5,
+        pointHitRadius: 12,
         pointBackgroundColor: "#67e8f9",
       },
     ],
@@ -53,6 +61,15 @@ function HeartChart({ data }) {
         backgroundColor: "rgba(15, 23, 42, 0.95)",
         borderColor: "rgba(148, 163, 184, 0.2)",
         borderWidth: 1,
+        displayColors: false,
+        callbacks: {
+          title: (items) => {
+            const hour = items[0]?.label;
+            return `Around ${getHourLabel(Number(hour))}`;
+          },
+          label: (context) => `Average heart rate: ${context.parsed.y} bpm`,
+          afterLabel: () => "This point shows the average HR recorded during that hour.",
+        },
       },
     },
     scales: {
